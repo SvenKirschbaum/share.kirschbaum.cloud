@@ -45,7 +45,7 @@ export const handler = async function forwardShareHandler(event: APIGatewayProxy
 
         const expiration = moment.unix(Number(share.expire.N));
 
-        if(expiration.isBefore(moment())) {
+        if(expiration.isBefore(moment()) || share.uploadId) {
             return {
                 statusCode: 404
             };

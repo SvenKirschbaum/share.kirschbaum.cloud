@@ -13,6 +13,7 @@ import {DynamoEventSource, SqsDlq} from "@aws-cdk/aws-lambda-event-sources";
 import {Queue} from "@aws-cdk/aws-sqs";
 import {StartingPosition} from "@aws-cdk/aws-lambda";
 import {AssetDistributionBehavior} from "./AssetDistributionBehavior";
+import {Duration} from "@aws-cdk/core";
 
 export class ShareApi extends cdk.Construct {
 
@@ -38,8 +39,14 @@ export class ShareApi extends cdk.Construct {
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
             cors: [
                 {
-                    allowedMethods: [HttpMethods.POST],
-                    allowedOrigins: ['*']
+                    allowedMethods: [HttpMethods.PUT],
+                    allowedOrigins: ['*'],
+                    exposedHeaders: ['ETag']
+                }
+            ],
+            lifecycleRules: [
+                {
+                    abortIncompleteMultipartUploadAfter: Duration.days(1)
                 }
             ]
         });
@@ -86,7 +93,8 @@ export class ShareApi extends cdk.Construct {
 
         const addShareFunction = new DefaultNodejsFunction(this, 'AddShareFunction', {
             entry: "lambda/nodejs/src/functions/addShare/index.ts",
-            environment: defaultLambdaEnvironment
+            environment: defaultLambdaEnvironment,
+            timeout: Duration.seconds(15)
         });
         table.grantWriteData(addShareFunction);
         fileShareBucket.grantPut(addShareFunction);
@@ -98,7 +106,24 @@ export class ShareApi extends cdk.Construct {
                 handler: addShareFunction
             }),
             authorizer
-        })
+        });
+
+        const completeUploadFunction = new DefaultNodejsFunction(this, 'CompleteUploadFunction', {
+            entry: "lambda/nodejs/src/functions/completeUpload/index.ts",
+            environment: defaultLambdaEnvironment,
+            timeout: Duration.seconds(15)
+        });
+        table.grantReadWriteData(completeUploadFunction);
+        fileShareBucket.grantPut(completeUploadFunction);
+
+        api.addRoutes({
+            path: '/completeUpload/{id}',
+            methods: [ HttpMethod.POST ],
+            integration: new LambdaProxyIntegration({
+                handler: completeUploadFunction
+            }),
+            authorizer
+        });
 
         const listSharesFunction = new DefaultNodejsFunction(this, 'ListSharesFunction', {
             entry: "lambda/nodejs/src/functions/listShares/index.ts",

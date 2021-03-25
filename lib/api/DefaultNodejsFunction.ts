@@ -34,7 +34,7 @@ export class DefaultNodejsFunction extends NodejsFunction {
                     'moment',
                     'reflect-metadata',
                     'uuid'
-                ],
+                ]
             },
             runtime: Runtime.NODEJS_14_X,
             layers: [layer]

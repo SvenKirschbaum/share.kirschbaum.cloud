@@ -18,7 +18,8 @@ export const handler = async function listSharesHandler(event: APIGatewayProxyEv
         ProjectionExpression: 'id,title,expire,#t',
         ExpressionAttributeNames: {
             '#t': 'type'
-        }
+        },
+        FilterExpression: 'attribute_not_exists(uploadId)'
     });
 
     try {
