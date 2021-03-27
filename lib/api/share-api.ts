@@ -87,7 +87,7 @@ export class ShareApi extends cdk.Construct {
         });
 
         const authorizer = new HttpJwtAuthorizer({
-            jwtAudience: ['cloud-share'],
+            jwtAudience: ['cloud-share-backend'],
             jwtIssuer: props.jwtIssuerUrl
         })
 
