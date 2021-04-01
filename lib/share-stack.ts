@@ -43,7 +43,9 @@ export default class ShareStack extends cdk.Stack {
     new BucketDeployment(this, 'FrontendDeployment', {
       destinationBucket: frontendBucket,
       sources: [
-        Source.asset('./frontend/build'),
+        Source.asset('./frontend/build', {
+          exclude: ['*.map'],
+        }),
       ],
     });
 
