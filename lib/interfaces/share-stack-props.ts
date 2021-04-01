@@ -3,7 +3,10 @@ import { StackProps } from '@aws-cdk/core';
 export interface ShareStackProps extends StackProps {
     domain?: string;
     certificateARN?: string;
-    jwtIssuerUrl: string;
+    keycloakUrl: string;
+    keycloakRealm: string;
+    frontendClientId: string;
+    backendClientId: string;
     privateKeySecretName: string;
     publicKeySecretName: string;
 }

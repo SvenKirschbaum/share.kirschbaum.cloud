@@ -1,4 +1,5 @@
 import * as cdk from '@aws-cdk/core';
+import * as childProcess from 'child_process';
 import {
   CfnOutput, Duration, RemovalPolicy,
 } from '@aws-cdk/core';
@@ -31,6 +32,12 @@ export default class ShareStack extends cdk.Stack {
       encryption: BucketEncryption.S3_MANAGED,
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: 'index.html',
+    });
+
+    ShareStack.buildFrontend({
+      REACT_APP_CLIENT_ID: props.frontendClientId,
+      REACT_APP_KEYCLOAK: props.keycloakUrl,
+      REACT_APP_REALM: props.keycloakRealm,
     });
 
     new BucketDeployment(this, 'FrontendDeployment', {
@@ -77,7 +84,7 @@ export default class ShareStack extends cdk.Stack {
 
     // Backend
     new ShareApi(this, 'Api', {
-      jwtIssuerUrl: props.jwtIssuerUrl,
+      jwtIssuerUrl: `${props.keycloakUrl}/realms/${props.keycloakRealm}`,
       distribution,
       domain: customDomain ? props.domain as string : distribution.domainName,
       privateKeySecretName: props.privateKeySecretName,
@@ -86,6 +93,16 @@ export default class ShareStack extends cdk.Stack {
 
     new CfnOutput(this, 'Url', {
       value: distribution.domainName,
+    });
+  }
+
+  private static buildFrontend(environment: {[p: string]: string}) {
+    childProcess.execSync('npm run build:frontend', {
+      env: {
+        ...process.env,
+        ...environment,
+      },
+      stdio: 'inherit',
     });
   }
 }

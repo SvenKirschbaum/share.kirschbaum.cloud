@@ -4,9 +4,9 @@ import Keycloak from 'keycloak-js'
 // Pass initialization options as required or leave blank to load from 'keycloak.json'
 // @ts-ignore
 const keycloak = new Keycloak({
-    url: 'https://id.elite12.de/auth',
-    realm: 'elite12',
-    clientId: 'cloud-share-frontend'
+    url: process.env.REACT_APP_KEYCLOAK,
+    realm: process.env.REACT_APP_REALM,
+    clientId: process.env.REACT_APP_CLIENT_ID
 });
 
 export default keycloak
