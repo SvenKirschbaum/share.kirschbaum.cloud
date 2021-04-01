@@ -67,7 +67,7 @@ export const handler = async function forwardShareHandler(event: APIGatewayProxy
             'response-content-disposition': `inline; filename="${title}"`
         });
         const signedUrl = signer.getSignedUrl({
-            url: 'https://share.kirschbaum.cloud/a/' + share.file.S + '?' + queryString,
+            url: 'https://' + process.env.DOMAIN + '/a/' + share.file.S + '?' + queryString,
             expires: expiration.unix(),
         })
 
