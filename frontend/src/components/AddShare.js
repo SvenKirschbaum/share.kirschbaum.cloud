@@ -64,10 +64,10 @@ function AddShare() {
 
     //Set file from location state
     useEffect(() => {
-        if(location.state) {
+        if(location.state && fileInput.current) {
             fileInput.current.files = location.state;
         }
-    }, [location.state]);
+    }, [location.state], fileInput.current);
 
     const onUrlChange = useCallback(event => {
         const newUrl = event.target.value;
