@@ -26,17 +26,26 @@ export const handler = async function deleteShareHandler(event: APIGatewayProxyE
         };
     }
 
-    const getItemCommand = new DeleteItemCommand({
+    const deleteItemCommand = new DeleteItemCommand({
         TableName: process.env.TABLE_NAME,
         Key: {
             'id': {
                 S: id
             }
+        },
+        ConditionExpression: '#u = :sub',
+        ExpressionAttributeNames: {
+            '#u': 'user'
+        },
+        ExpressionAttributeValues: {
+            ':sub': {
+                S: event.requestContext.authorizer?.jwt.claims.sub as string
+            }
         }
     });
 
     try {
-        await ddb.send(getItemCommand);
+        await ddb.send(deleteItemCommand);
 
         return {
             statusCode: 200

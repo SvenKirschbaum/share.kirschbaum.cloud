@@ -31,6 +31,16 @@ export default class ShareApi extends cdk.Construct {
         stream: StreamViewType.OLD_IMAGE,
       });
 
+      table.addGlobalSecondaryIndex({
+        partitionKey: {
+          name: 'user',
+          type: AttributeType.STRING,
+        },
+        indexName: 'user-index',
+        writeCapacity: 1,
+        readCapacity: 1,
+      });
+
       const fileShareBucket = new Bucket(this, 'FileShareBucket', {
         encryption: BucketEncryption.S3_MANAGED,
         blockPublicAccess: BlockPublicAccess.BLOCK_ALL,

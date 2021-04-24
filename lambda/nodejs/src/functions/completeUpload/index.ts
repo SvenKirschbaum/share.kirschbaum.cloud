@@ -59,14 +59,14 @@ export const handler = async function completeUpload(event: APIGatewayProxyEvent
                 };
             }
 
-            if(share.type.S !== 'FILE' || !share.uploadId) {
+            if(share.type.S !== 'FILE' || !share.uploadId || share.user.S !== event.requestContext.authorizer?.jwt.claims.sub ) {
                 return {
                     statusCode: 409,
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        message: 'There is no upload for the specified share id'
+                        message: 'There is no upload for the specified share id and user'
                     })
                 };
             }

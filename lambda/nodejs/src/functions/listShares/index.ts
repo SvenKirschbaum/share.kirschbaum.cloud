@@ -1,5 +1,5 @@
 import {APIGatewayProxyEventV2, APIGatewayProxyResultV2} from "aws-lambda";
-import {DynamoDBClient, ScanCommand} from "@aws-sdk/client-dynamodb";
+import {DynamoDBClient, QueryCommand, ScanCommand} from "@aws-sdk/client-dynamodb";
 import moment = require("moment");
 
 const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
@@ -13,19 +13,27 @@ export const handler = async function listSharesHandler(event: APIGatewayProxyEv
         };
     }
 
-    const scanCommand = new ScanCommand({
+    const queryCommand = new QueryCommand({
         TableName: process.env.TABLE_NAME,
+        IndexName: 'user-index',
         ProjectionExpression: 'id,title,expire,#t',
+        FilterExpression: 'attribute_not_exists(uploadId)',
+        KeyConditionExpression: '#u = :sub',
         ExpressionAttributeNames: {
-            '#t': 'type'
+            '#t': 'type',
+            '#u': 'user'
         },
-        FilterExpression: 'attribute_not_exists(uploadId)'
+        ExpressionAttributeValues: {
+            ':sub': {
+                S: event.requestContext.authorizer?.jwt.claims.sub as string
+            }
+        }
     });
 
     try {
-        const scanResult = await ddb.send(scanCommand);
+        const queryResult = await ddb.send(queryCommand);
 
-        const shareItems = scanResult.Items || [];
+        const shareItems = queryResult.Items || [];
 
         const shares = shareItems
             .filter(value => moment.unix(Number(value.expire.N)).isAfter(moment()))

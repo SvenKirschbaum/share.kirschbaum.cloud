@@ -74,6 +74,9 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
                 'id': {
                     S: id
                 },
+                'user': {
+                    S: event.requestContext.authorizer?.jwt.claims.sub as string
+                },
                 'expire': {
                     N: expirationDate.unix().toString()
                 },
