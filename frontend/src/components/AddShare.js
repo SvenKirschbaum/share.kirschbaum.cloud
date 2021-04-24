@@ -12,13 +12,14 @@ import {
 } from "@material-ui/core";
 import {DateTimePicker} from '@material-ui/pickers';
 import {Link, useHistory} from "react-router-dom";
-import React, {useCallback, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import moment from "moment";
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import {uploadService} from "../services/UploadService";
+import {useLocation} from "react-router";
 
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 
@@ -35,11 +36,12 @@ function AddShare() {
     const classes = useStyles();
 
     const history = useHistory();
+    const location = useLocation();
     const {keycloak} = useKeycloak();
 
     const fileInput = useRef();
 
-    const [fileUpload, setFileUpload] = useState(false);
+    const [fileUpload, setFileUpload] = useState(location.state !== undefined);
     const [title, setTitle] = useState('');
     const [url, setURL] = useState('');
     const [expire, setExpire] = useState(moment().add(7, 'days'));
@@ -59,6 +61,13 @@ function AddShare() {
     const [addedId, setAddedId] = useState();
 
     const targetURL = window.location.protocol + '//' + window.location.host + '/d/' + addedId;
+
+    //Set file from location state
+    useEffect(() => {
+        if(location.state) {
+            fileInput.current.files = location.state;
+        }
+    }, [location.state]);
 
     const onUrlChange = useCallback(event => {
         const newUrl = event.target.value;

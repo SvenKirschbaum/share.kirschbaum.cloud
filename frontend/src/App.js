@@ -18,11 +18,11 @@ import {BrowserRouter, Route, Switch} from "react-router-dom";
 import AddShare from "./components/AddShare";
 import {MuiPickersUtilsProvider} from "@material-ui/pickers";
 import MomentUtils from '@date-io/moment';
+import DropFile from "./components/DropFile";
 
 
 const useStyles = makeStyles({
     container: {
-        height: '100%',
         marginTop: '4em',
         marginBottom: '4em',
     }
@@ -66,20 +66,22 @@ function App() {
       }}>
           <MuiPickersUtilsProvider utils={MomentUtils}>
             <CssBaseline />
-            <Container className={classes.container} maxWidth={"sm"}>
-                <AuthorizationBarrier>
-                    <BrowserRouter>
-                      <Switch>
-                        <Route path={'/'} exact>
-                          <ShareList />
-                        </Route>
-                        <Route path={'/add'} exact>
-                          <AddShare />
-                        </Route>
-                      </Switch>
-                    </BrowserRouter>
-                </AuthorizationBarrier>
-            </Container>
+            <AuthorizationBarrier>
+                <BrowserRouter>
+                    <DropFile>
+                        <Container className={classes.container} maxWidth={"sm"}>
+                          <Switch>
+                            <Route path={'/'} exact>
+                              <ShareList />
+                            </Route>
+                            <Route path={'/add'} exact>
+                              <AddShare />
+                            </Route>
+                          </Switch>
+                        </Container>
+                    </DropFile>
+                </BrowserRouter>
+            </AuthorizationBarrier>
           </MuiPickersUtilsProvider>
       </ReactKeycloakProvider>
   );
