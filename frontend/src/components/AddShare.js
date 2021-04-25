@@ -41,7 +41,7 @@ function AddShare() {
 
     const fileInput = useRef();
 
-    const [fileUpload, setFileUpload] = useState(location.state !== undefined);
+    const [fileUpload, setFileUpload] = useState(false);
     const [title, setTitle] = useState('');
     const [url, setURL] = useState('');
     const [expire, setExpire] = useState(moment().add(7, 'days'));
@@ -62,12 +62,17 @@ function AddShare() {
 
     const targetURL = window.location.protocol + '//' + window.location.host + '/d/' + addedId;
 
+    //Switch to file upload if state is set
+    useEffect(() => {
+        if(location.state) setFileUpload(true);
+    }, [location.state]);
+
     //Set file from location state
     useEffect(() => {
         if(location.state && fileInput.current) {
             fileInput.current.files = location.state;
         }
-    }, [location.state], fileInput.current);
+    }, [location.state, fileUpload]);
 
     const onUrlChange = useCallback(event => {
         const newUrl = event.target.value;
