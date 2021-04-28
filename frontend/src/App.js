@@ -57,12 +57,12 @@ function App() {
   const classes = useStyles();
 
   return (
-      <ReactKeycloakProvider authClient={keycloak} initOptions={{
+      <ReactKeycloakProvider authClient={keycloak} LoadingComponent={<React.Fragment />} initOptions={{
         onLoad: 'login-required',
         promiseType: 'native',
         flow: 'standard',
         pkceMethod: 'S256',
-        checkLoginIframe: false
+        checkLoginIframe: false,
       }}>
           <MuiPickersUtilsProvider utils={MomentUtils}>
             <CssBaseline />
