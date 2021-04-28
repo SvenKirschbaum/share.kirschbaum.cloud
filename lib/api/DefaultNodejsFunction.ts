@@ -1,10 +1,11 @@
 import { Construct, Stack } from '@aws-cdk/core';
 import { NodejsFunction, NodejsFunctionProps } from '@aws-cdk/aws-lambda-nodejs';
 import { Code, LayerVersion, Runtime } from '@aws-cdk/aws-lambda';
+import * as nodePackageJson from '../../lambda/nodejs/package.json';
 
 export default class DefaultNodejsFunction extends NodejsFunction {
   constructor(scope: Construct, id: string, props: NodejsFunctionProps) {
-    const layerId = 'backend-default-lambda-layer';
+    const layerId = 'default-node-layer';
 
     const stack = Stack.of(scope);
     let layer = stack.node.tryFindChild(layerId) as LayerVersion;
@@ -21,16 +22,7 @@ export default class DefaultNodejsFunction extends NodejsFunction {
       bundling: {
         externalModules: [
           'aws-sdk',
-          '@aws-sdk/client-dynamodb',
-          '@aws-sdk/client-secrets-manager',
-          '@aws-sdk/s3-presigned-post',
-          '@aws-sdk/client-s3',
-          'class-transformer',
-          'class-transformer-validator',
-          'class-validator',
-          'moment',
-          'reflect-metadata',
-          'uuid',
+          ...Object.keys(nodePackageJson.dependencies),
         ],
       },
       runtime: Runtime.NODEJS_14_X,

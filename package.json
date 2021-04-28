@@ -46,7 +46,8 @@
     "@aws-cdk/yaml-cfn": "^1.95.1",
     "aws-cdk": "^1.95.1",
     "aws-sdk": "^2.871.0",
-    "esbuild": "^0.9.6",
+    "cdk-dia": "^0.2.0",
+    "esbuild": "^0.11.15",
     "source-map-support": "^0.5.16"
   }
 }

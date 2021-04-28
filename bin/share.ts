@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import ShareStack from '../lib/share-stack';
+import ShareStack from '../lib/ShareStack';
 
 const app = new cdk.App();
 new ShareStack(app, 'ShareStack', {

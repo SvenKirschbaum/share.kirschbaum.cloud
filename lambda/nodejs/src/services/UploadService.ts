@@ -1,4 +1,4 @@
-import {v4, v4 as uuidv4} from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import {CompleteMultipartUploadCommand, CreateMultipartUploadCommand, S3Client} from "@aws-sdk/client-s3";
 import UploadInfo from "../types/UploadInfo";
 import {CompletedPart} from "aws-sdk/clients/s3";
