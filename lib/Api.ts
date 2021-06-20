@@ -19,18 +19,24 @@ import {
   OriginRequestQueryStringBehavior,
   ViewerProtocolPolicy,
 } from '@aws-cdk/aws-cloudfront';
-import DefaultNodejsFunction from './api/DefaultNodejsFunction';
+import DefaultNodejsFunction from './lambda/DefaultNodejsFunction';
 import { ApiProps } from './interfaces/ApiProps';
 
 export default class Api extends cdk.Construct {
   public additionalBehaviors = new Map<string, BehaviorOptions>();
 
+  public readonly table: Table;
+
   constructor(scope: cdk.Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    const table = new Table(this, 'Table', {
+    this.table = new Table(this, 'Table', {
       partitionKey: {
-        name: 'id',
+        name: 'PK',
+        type: AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'SK',
         type: AttributeType.STRING,
       },
       readCapacity: 1,
@@ -39,7 +45,7 @@ export default class Api extends cdk.Construct {
       stream: StreamViewType.OLD_IMAGE,
     });
 
-    table.addGlobalSecondaryIndex({
+    this.table.addGlobalSecondaryIndex({
       partitionKey: {
         name: 'user',
         type: AttributeType.STRING,
@@ -65,7 +71,7 @@ export default class Api extends cdk.Construct {
     });
 
     const defaultLambdaEnvironment = {
-      TABLE_NAME: table.tableName,
+      TABLE_NAME: this.table.tableName,
       FILE_BUCKET: props.fileBucket.bucketName,
       DOMAIN: props.domain,
     };
@@ -77,7 +83,8 @@ export default class Api extends cdk.Construct {
       environment: defaultLambdaEnvironment,
     });
     props.fileBucket.grantDelete(onShareDeletionFunction);
-    onShareDeletionFunction.addEventSource(new DynamoEventSource(table, {
+    this.table.grantReadWriteData(onShareDeletionFunction);
+    onShareDeletionFunction.addEventSource(new DynamoEventSource(this.table, {
       startingPosition: StartingPosition.LATEST,
       onFailure: new SqsDlq(deadLetterQueue),
       bisectBatchOnError: true,
@@ -120,7 +127,7 @@ export default class Api extends cdk.Construct {
       environment: defaultLambdaEnvironment,
       timeout: Duration.seconds(15),
     });
-    table.grantWriteData(addShareFunction);
+    this.table.grantWriteData(addShareFunction);
     props.fileBucket.grantPut(addShareFunction);
 
     api.addRoutes({
@@ -137,7 +144,7 @@ export default class Api extends cdk.Construct {
       environment: defaultLambdaEnvironment,
       timeout: Duration.seconds(15),
     });
-    table.grantReadWriteData(completeUploadFunction);
+    this.table.grantReadWriteData(completeUploadFunction);
     props.fileBucket.grantPut(completeUploadFunction);
 
     api.addRoutes({
@@ -153,7 +160,7 @@ export default class Api extends cdk.Construct {
       entry: 'lambda/nodejs/src/functions/listShares/index.ts',
       environment: defaultLambdaEnvironment,
     });
-    table.grantReadData(listSharesFunction);
+    this.table.grantReadData(listSharesFunction);
 
     api.addRoutes({
       path: '/list',
@@ -168,7 +175,7 @@ export default class Api extends cdk.Construct {
       entry: 'lambda/nodejs/src/functions/deleteShare/index.ts',
       environment: defaultLambdaEnvironment,
     });
-    table.grantWriteData(deleteShareFunction);
+    this.table.grantWriteData(deleteShareFunction);
 
     api.addRoutes({
       path: '/share/{id}',
@@ -187,7 +194,7 @@ export default class Api extends cdk.Construct {
         KEY_SECRET: props.fileShareKeySecret.secretName,
       },
     });
-    table.grantReadData(forwardShareFunction);
+    this.table.grantReadData(forwardShareFunction);
     props.fileShareKeySecret.grantRead(forwardShareFunction);
 
     api.addRoutes({

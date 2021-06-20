@@ -25,6 +25,9 @@ const useShareEntryStyles = makeStyles({
             overflow: 'hidden',
             direction: 'rtl',
             cursor: 'pointer'
+        },
+        '& .MuiListItemText-primary': {
+            wordBreak: 'break-all'
         }
     }
 });

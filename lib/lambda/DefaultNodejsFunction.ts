@@ -12,7 +12,7 @@ export default class DefaultNodejsFunction extends NodejsFunction {
 
     layer = layer || new LayerVersion(stack, layerId, {
       code: Code.fromAsset('lambda', {
-        exclude: ['nodejs/src/functions'],
+        exclude: ['nodejs/src/functions', 'cloudfront'],
       }),
       compatibleRuntimes: [Runtime.NODEJS_10_X, Runtime.NODEJS_12_X, Runtime.NODEJS_14_X],
     });

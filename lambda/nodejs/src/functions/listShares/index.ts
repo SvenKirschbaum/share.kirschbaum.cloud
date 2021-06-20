@@ -1,5 +1,8 @@
 import {APIGatewayProxyEventV2, APIGatewayProxyResultV2} from "aws-lambda";
-import {DynamoDBClient, QueryCommand, ScanCommand} from "@aws-sdk/client-dynamodb";
+import {
+    DynamoDBClient,
+    QueryCommand
+} from "@aws-sdk/client-dynamodb";
 import moment = require("moment");
 
 const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
@@ -16,7 +19,7 @@ export const handler = async function listSharesHandler(event: APIGatewayProxyEv
     const queryCommand = new QueryCommand({
         TableName: process.env.TABLE_NAME,
         IndexName: 'user-index',
-        ProjectionExpression: 'id,title,expire,#t',
+        ProjectionExpression: 'PK,title,expire,#t,clicks',
         FilterExpression: 'attribute_not_exists(uploadId)',
         KeyConditionExpression: '#u = :sub',
         ExpressionAttributeNames: {
@@ -31,17 +34,28 @@ export const handler = async function listSharesHandler(event: APIGatewayProxyEv
     });
 
     try {
-        const queryResult = await ddb.send(queryCommand);
+        let queryCommandOutput;
+        const shareItems = [];
+        do {
+            queryCommandOutput = await ddb.send(queryCommand);
+            if(queryCommandOutput.LastEvaluatedKey) queryCommand.input.ExclusiveStartKey = queryCommandOutput.LastEvaluatedKey;
 
-        const shareItems = queryResult.Items || [];
+            if(queryCommandOutput.Items) {
+                shareItems.push(...queryCommandOutput.Items);
+            }
+        }while (queryCommandOutput.LastEvaluatedKey);
 
         const shares = shareItems
             .filter(value => moment.unix(Number(value.expire.N)).isAfter(moment()))
             .map(value => {
                 return {
-                    id: value.id.S,
+                    id: value.PK.S?.replace('SHARE#', ''),
                     title: value.title.S,
-                    type: value.type.S
+                    type: value.type.S,
+                    clicks: Object.entries(value.clicks.M!).reduce((result, [date, clickValue]) => {
+                        result[date] = parseInt(clickValue.N!);
+                        return result;
+                    }, {} as {[date: string] : number})
                 };
             }
         );

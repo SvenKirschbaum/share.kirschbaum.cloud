@@ -29,9 +29,12 @@ export const handler = async function deleteShareHandler(event: APIGatewayProxyE
     const deleteItemCommand = new DeleteItemCommand({
         TableName: process.env.TABLE_NAME,
         Key: {
-            'id': {
-                S: id
-            }
+            'PK': {
+                S: 'SHARE#'+ id
+            },
+            'SK': {
+                S: 'SHARE#'+ id
+            },
         },
         ConditionExpression: '#u = :sub',
         ExpressionAttributeNames: {

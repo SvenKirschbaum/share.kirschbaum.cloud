@@ -71,8 +71,11 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
         const putItemCommand = new PutItemCommand({
             TableName: process.env.TABLE_NAME,
             Item: {
-                'id': {
-                    S: id
+                'PK': {
+                    S: 'SHARE#'+ id
+                },
+                'SK': {
+                    S: 'SHARE#'+ id
                 },
                 'user': {
                     S: event.requestContext.authorizer?.jwt.claims.sub as string
@@ -85,6 +88,9 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
                 },
                 'type': {
                     S: requestDto.type
+                },
+                'clicks': {
+                    M: {}
                 },
                 ...itemContent
             },

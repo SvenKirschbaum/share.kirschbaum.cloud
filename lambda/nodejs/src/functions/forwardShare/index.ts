@@ -26,9 +26,12 @@ export const handler = async function forwardShareHandler(event: APIGatewayProxy
     const getItemCommand = new GetItemCommand({
         TableName: process.env.TABLE_NAME,
         Key: {
-            'id': {
-                S: id
-            }
+            'PK': {
+                S: 'SHARE#'+ id
+            },
+            'SK': {
+                S: 'SHARE#'+ id
+            },
         }
     });
 

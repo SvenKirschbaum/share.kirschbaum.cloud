@@ -42,8 +42,11 @@ export const handler = async function completeUpload(event: APIGatewayProxyEvent
         const getItemCommand = new GetItemCommand({
             TableName: process.env.TABLE_NAME,
             Key: {
-                'id': {
-                    S: id
+                'PK': {
+                    S: 'SHARE#'+ id
+                },
+                'SK': {
+                    S: 'SHARE#'+ id
                 }
             }
         });
