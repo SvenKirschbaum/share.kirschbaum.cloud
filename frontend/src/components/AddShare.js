@@ -60,7 +60,7 @@ function AddShare() {
 
     const [addedId, setAddedId] = useState();
 
-    const targetURL = window.location.protocol + '//' + window.location.host + '/d/' + addedId;
+    const targetURLPrefix = window.location.protocol + '//' + window.location.host + '/d/';
 
     //Switch to file upload if state is set
     useEffect(() => {
@@ -123,7 +123,8 @@ function AddShare() {
                 setShowUpload(true);
 
                 uploadService.uploadFile(res.data.shareId, fileInput.current.files[0], res.data.uploadUrls, setUploadProgress)
-                    .then(res => {
+                    .then(_ => {
+                        navigator.clipboard.writeText(targetURLPrefix + res.data.shareId).then();
                         setShowSuccess(true);
                     }).catch(error => {
                         setErrorMessage(error.message);
@@ -134,6 +135,7 @@ function AddShare() {
                 return;
             }
 
+            navigator.clipboard.writeText(targetURLPrefix + res.data.shareId).then();
             setShowSuccess(true);
         })
         .catch(error => {
@@ -193,7 +195,7 @@ function AddShare() {
             >
                 <DialogTitle>Share successfully added</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>Your Share is accessible via the following Link: <a href={targetURL}>{targetURL}</a></DialogContentText>
+                    <DialogContentText>Your Share is accessible via the following Link: <a href={targetURLPrefix + addedId}>{targetURLPrefix + addedId}</a></DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={event => history.push('/')} color={"primary"} variant={"contained"}>Ok</Button>
