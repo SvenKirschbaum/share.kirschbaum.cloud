@@ -4,7 +4,7 @@ module.exports = function(app) {
     app.use(
         '/api',
         createProxyMiddleware({
-            target: 'https://share.kirschbaum.cloud',
+            target: 'localhost',//'https://share.kirschbaum.cloud',
             changeOrigin: true,
         })
     );

@@ -57,6 +57,7 @@ function AddShare() {
 
     const [showUpload, setShowUpload] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadSpeedBPS, setUploadSpeedBPS] = useState(0);
 
     const [addedId, setAddedId] = useState();
 
@@ -122,7 +123,7 @@ function AddShare() {
             if(fileUpload) {
                 setShowUpload(true);
 
-                uploadService.uploadFile(res.data.shareId, fileInput.current.files[0], res.data.uploadUrls, setUploadProgress)
+                uploadService.uploadFile(res.data.shareId, fileInput.current.files[0], res.data.uploadUrls, setUploadProgress, setUploadSpeedBPS)
                     .then(_ => {
                         navigator.clipboard.writeText(targetURLPrefix + res.data.shareId).then();
                         setShowSuccess(true);
@@ -186,6 +187,7 @@ function AddShare() {
                 <DialogContent>
                     <DialogContentText>Your Upload is in progress</DialogContentText>
                     <LinearProgress variant="determinate" value={uploadProgress*100} />
+                    <div>{uploadSpeedBPS}</div>
                 </DialogContent>
             </Dialog>
             <Dialog

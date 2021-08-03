@@ -40,16 +40,19 @@ class UploadService {
         })
     }
 
-    uploadFile(shareId, file, partUrls, onProgress) {
+    uploadFile(shareId, file, partUrls, onProgress, currSpeed) {
         const numParts = partUrls.length;
         const partSize = Math.ceil(file.size / numParts);
 
         const results = [];
         const progress = Array(numParts).fill(0);
+        let lastProgress = 0;
 
         const progressUpdateTimer = setInterval(() => {
             const current = progress.reduce((previousValue, currentValue) => previousValue + currentValue);
             onProgress(current/file.size);
+            currSpeed((current - lastProgress) * 5);
+            lastProgress = current;
         }, 200);
 
         const work = partUrls.map((url, index) => {
