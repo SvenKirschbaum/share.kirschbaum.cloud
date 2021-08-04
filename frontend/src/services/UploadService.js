@@ -46,13 +46,30 @@ class UploadService {
 
         const results = [];
         const progress = Array(numParts).fill(0);
-        let lastProgress = 0;
 
+        const prevSpeedsSize = 10
+        let prevSpeeds = Array(prevSpeedsSize).fill(0);
+        let previous = 0;
+
+        let first = true;
+        let i = 0;
         const progressUpdateTimer = setInterval(() => {
-            const current = progress.reduce((previousValue, currentValue) => previousValue + currentValue);
+
+            const current = progress.reduce((prev, curr) => prev + curr);
+            prevSpeeds[i] = current - previous;
+            previous = current;
+
+            const avSpeed = first
+                ? prevSpeeds.slice(0,i+1).reduce((prev, curr) => prev + curr) / (i+1)
+                : prevSpeeds.reduce((prev, curr) => prev + curr) / prevSpeedsSize;
+
+            currSpeed(avSpeed * 5);
             onProgress(current/file.size);
-            currSpeed((current - lastProgress) * 5);
-            lastProgress = current;
+
+            if (++i === prevSpeedsSize){
+                first = false;
+                i = 0;
+            }
         }, 200);
 
         const work = partUrls.map((url, index) => {

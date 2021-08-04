@@ -20,6 +20,7 @@ import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import {uploadService} from "../services/UploadService";
 import {useLocation} from "react-router";
+import prettyBytes from "pretty-bytes";
 
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 
@@ -187,7 +188,7 @@ function AddShare() {
                 <DialogContent>
                     <DialogContentText>Your Upload is in progress</DialogContentText>
                     <LinearProgress variant="determinate" value={uploadProgress*100} />
-                    <div>{uploadSpeedBPS}</div>
+                    <div>{prettyBytes(uploadSpeedBPS)} /s</div>
                 </DialogContent>
             </Dialog>
             <Dialog
