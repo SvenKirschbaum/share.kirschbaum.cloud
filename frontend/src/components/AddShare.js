@@ -20,6 +20,7 @@ import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import {uploadService} from "../services/UploadService";
 import {useLocation} from "react-router";
+import prettyBytes from "pretty-bytes";
 
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 
@@ -57,6 +58,7 @@ function AddShare() {
 
     const [showUpload, setShowUpload] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadSpeedBPS, setUploadSpeedBPS] = useState(0);
 
     const [addedId, setAddedId] = useState();
 
@@ -122,7 +124,7 @@ function AddShare() {
             if(fileUpload) {
                 setShowUpload(true);
 
-                uploadService.uploadFile(res.data.shareId, fileInput.current.files[0], res.data.uploadUrls, setUploadProgress)
+                uploadService.uploadFile(res.data.shareId, fileInput.current.files[0], res.data.uploadUrls, setUploadProgress, setUploadSpeedBPS)
                     .then(_ => {
                         navigator.clipboard.writeText(targetURLPrefix + res.data.shareId).then();
                         setShowSuccess(true);
@@ -186,6 +188,7 @@ function AddShare() {
                 <DialogContent>
                     <DialogContentText>Your Upload is in progress</DialogContentText>
                     <LinearProgress variant="determinate" value={uploadProgress*100} />
+                    <div>{prettyBytes(uploadSpeedBPS)}/s</div>
                 </DialogContent>
             </Dialog>
             <Dialog

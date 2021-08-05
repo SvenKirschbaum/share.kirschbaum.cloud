@@ -40,17 +40,37 @@ class UploadService {
         })
     }
 
-    uploadFile(shareId, file, partUrls, onProgress) {
+    uploadFile(shareId, file, partUrls, onProgress, onSpeedChange) {
+
+        const fps = 3;
         const numParts = partUrls.length;
         const partSize = Math.ceil(file.size / numParts);
 
         const results = [];
         const progress = Array(numParts).fill(0);
 
+        const previousCount = 10;
+        const previous = Array(previousCount).fill(0);
+
+        let i = 0;
+        let first = true;
         const progressUpdateTimer = setInterval(() => {
-            const current = progress.reduce((previousValue, currentValue) => previousValue + currentValue);
+
+            const current = progress.reduce((prev, curr) => prev + curr);
+            previous[i] = current;
+
+            const avSpeed = first
+                ? current * fps / (i+1)
+                : (current - previous[(i+1) % previousCount]) * fps / previousCount;
+
+            onSpeedChange(avSpeed);
             onProgress(current/file.size);
-        }, 200);
+
+            if (++i === previousCount){
+                first = false;
+                i = 0;
+            }
+        }, 1000 / fps);
 
         const work = partUrls.map((url, index) => {
             return {
