@@ -188,7 +188,7 @@ function AddShare() {
                 <DialogContent>
                     <DialogContentText>Your Upload is in progress</DialogContentText>
                     <LinearProgress variant="determinate" value={uploadProgress*100} />
-                    <div>{prettyBytes(uploadSpeedBPS)} /s</div>
+                    <div>{prettyBytes(uploadSpeedBPS)}/s</div>
                 </DialogContent>
             </Dialog>
             <Dialog
