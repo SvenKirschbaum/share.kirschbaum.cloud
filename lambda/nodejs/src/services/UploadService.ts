@@ -1,19 +1,19 @@
 import {v4 as uuidv4} from 'uuid';
-import {CompleteMultipartUploadCommand, CreateMultipartUploadCommand, S3Client} from "@aws-sdk/client-s3";
+import {
+    CompletedPart,
+    CompleteMultipartUploadCommand,
+    CreateMultipartUploadCommand,
+    S3Client,
+    UploadPartCommand
+} from "@aws-sdk/client-s3";
 import UploadInfo from "../types/UploadInfo";
-import {CompletedPart} from "aws-sdk/clients/s3";
-import {S3} from "aws-sdk";
-
-const AWS = require('aws-sdk');
+import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 
 class UploadService {
-
-    private s3: S3Client;
-    private s3v2: S3;
+    private readonly s3: S3Client;
 
     constructor() {
         this.s3 = new S3Client({ region: process.env.AWS_REGION });
-        this.s3v2 = new S3();
     }
 
     public async startUpload(parts: number, contentType: string): Promise<UploadInfo> {
@@ -29,15 +29,15 @@ class UploadService {
 
         const partUrls = await Promise.all(
             [...Array(parts).keys()]
-            .map(partNumber =>
-                this.s3v2.getSignedUrlPromise('uploadPart', {
-                    Bucket: process.env.FILE_BUCKET as string,
+            .map(partNumber => {
+                const uploadPartCommand = new UploadPartCommand({
+                    Bucket: process.env.FILE_BUCKET,
                     Key: 'a/' + fileId,
-                    UploadId: createUploadResponse.UploadId,
                     PartNumber: partNumber + 1,
-                    Expires: 60*60*24
-                })
-            )
+                    UploadId: createUploadResponse.UploadId
+                });
+                return getSignedUrl(this.s3, uploadPartCommand, {expiresIn: 60 * 60 * 24})
+            })
         );
 
         return {
@@ -49,7 +49,7 @@ class UploadService {
 
     public async finishUpload(uploadId: string, fileId: string, parts: CompletedPart[]): Promise<void> {
         const completeMultipartUploadCommand = new CompleteMultipartUploadCommand({
-            Bucket: process.env.FILE_BUCKET as string,
+            Bucket: process.env.FILE_BUCKET,
             Key: 'a/' + fileId,
             UploadId: uploadId,
             MultipartUpload: {
