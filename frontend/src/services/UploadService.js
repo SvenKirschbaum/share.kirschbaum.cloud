@@ -49,27 +49,31 @@ class UploadService {
         const results = [];
         const progress = Array(numParts).fill(0);
 
-        const previousCount = 10;
-        const previous = Array(previousCount).fill(0);
+        const previousCount = 15;
+        const previous = Array(previousCount).fill({
+            date: new Date(),
+            progress: 0
+        });
 
         let i = 0;
-        let first = true;
         const progressUpdateTimer = setInterval(() => {
+            const currentProgress = progress.reduce((prev, curr) => prev + curr);
+            const currentDate = new Date();
 
-            const current = progress.reduce((prev, curr) => prev + curr);
-            previous[i] = current;
+            previous[i] = {
+                date: currentDate,
+                progress: currentProgress
+            };
 
-            const avSpeed = first
-                ? current * fps / (i+1)
-                : (current - previous[(i+1) % previousCount]) * fps / previousCount;
+            i = (i+1) % previousCount;
+
+            const progressDiff = currentProgress - previous[i].progress;
+            // In Milliseconds
+            const dateDiff = currentDate - previous[i].date;
+            const avSpeed = progressDiff / dateDiff * 1000;
 
             onSpeedChange(avSpeed);
-            onProgress(current/file.size);
-
-            if (++i === previousCount){
-                first = false;
-                i = 0;
-            }
+            onProgress(currentProgress/file.size);
         }, 1000 / fps);
 
         const work = partUrls.map((url, index) => {
