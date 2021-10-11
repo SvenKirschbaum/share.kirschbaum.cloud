@@ -14,6 +14,7 @@ new ShareStack(app, 'ShareStack', {
   publicKeySecretName: 'share/cloudfront/public',
   privateKeySecretName: 'share/cloudfront/private',
   env: {
+    account: '743848950232',
     region: 'eu-central-1',
   },
 });
