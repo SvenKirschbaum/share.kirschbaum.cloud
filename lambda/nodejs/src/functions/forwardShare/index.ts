@@ -1,12 +1,17 @@
 import {APIGatewayProxyEventV2, APIGatewayProxyResultV2} from "aws-lambda";
 import {DynamoDBClient, GetItemCommand} from "@aws-sdk/client-dynamodb";
-import * as querystring from 'querystring'
 import {getSigner} from "./signer";
 import moment = require("moment");
 
 const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
 
 const RFC2822_DATE_FORMAT = "ddd, DD MMM YYYY HH:mm:ss [GMT]";
+
+function fixedEncodeURIComponent(str: string) {
+    return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+        return '%' + c.charCodeAt(0).toString(16);
+    });
+}
 
 export const handler = async function forwardShareHandler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
     const id = event.pathParameters?.id;
@@ -66,11 +71,9 @@ export const handler = async function forwardShareHandler(event: APIGatewayProxy
 
         const signer = await getSigner();
         const title = share.title.S;
-        const queryString = querystring.stringify({
-            'response-content-disposition': `inline; filename="${title}"`
-        });
+
         const signedUrl = signer.getSignedUrl({
-            url: 'https://' + process.env.DOMAIN + '/a/' + share.file.S + '?' + queryString,
+            url: 'https://' + process.env.DOMAIN + '/a/' + share.file.S + '?response-content-disposition=' + fixedEncodeURIComponent(`inline; filename="${title}"`),
             expires: expiration.unix(),
         })
 
