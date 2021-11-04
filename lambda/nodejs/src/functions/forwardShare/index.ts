@@ -7,8 +7,9 @@ const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
 
 const RFC2822_DATE_FORMAT = "ddd, DD MMM YYYY HH:mm:ss [GMT]";
 
+//Because reasons, cloudfront requires some specific (but not all) characters to be percent encoded beyond was encodeURIComponent does
 function fixedEncodeURIComponent(str: string) {
-    return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return encodeURIComponent(str).replace(/['*]/g, function(c) {
         return '%' + c.charCodeAt(0).toString(16);
     });
 }
