@@ -35,7 +35,8 @@ export const handler = async function completeUpload(event: APIGatewayProxyEvent
             validator: {
                 validationError: {
                     target: false
-                }
+                },
+                forbidUnknownValues: true
             }
         }) as CompleteUploadDto;
 

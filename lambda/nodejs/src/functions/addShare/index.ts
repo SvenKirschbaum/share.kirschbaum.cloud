@@ -24,7 +24,8 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
             validator: {
                 validationError: {
                     target: false
-                }
+                },
+                forbidUnknownValues: true
             }
         }) as AddShareRequestDto;
 
