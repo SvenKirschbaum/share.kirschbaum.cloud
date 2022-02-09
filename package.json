@@ -6,8 +6,6 @@
   },
   "scripts": {
     "build:frontend": "cd frontend && npm run build",
-    "build:sam": "cdk synth --no-staging > cdk.out/template.yaml",
-    "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
     "lint": "eslint \"**/*.ts\" "
