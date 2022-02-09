@@ -2,20 +2,20 @@
   "name": "custom-lambda-layer",
   "version": "1.0.0",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.39.0",
-    "@aws-sdk/client-s3": "^3.39.0",
-    "@aws-sdk/client-secrets-manager": "^3.39.0",
-    "@aws-sdk/s3-request-presigner": "^3.39.0",
-    "class-transformer": "^0.4.0",
+    "@aws-sdk/client-dynamodb": "^3.50.0",
+    "@aws-sdk/client-s3": "^3.50.0",
+    "@aws-sdk/client-secrets-manager": "^3.50.0",
+    "@aws-sdk/s3-request-presigner": "^3.50.0",
+    "class-transformer": "^0.5.1",
     "class-transformer-validator": "^0.9.1",
-    "class-validator": "^0.13.1",
+    "class-validator": "^0.13.2",
     "cloudfront-log-parser": "^1.2.0",
     "moment": "^2.29.1",
     "reflect-metadata": "^0.1.13",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.85",
-    "@types/uuid": "^8.3.1"
+    "@types/aws-lambda": "^8.10.92",
+    "@types/uuid": "^8.3.4"
   }
 }

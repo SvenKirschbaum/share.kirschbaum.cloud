@@ -1,5 +1,5 @@
-import { Bucket } from '@aws-cdk/aws-s3';
-import { ISecret } from '@aws-cdk/aws-secretsmanager';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 
 export interface ApiProps {
     jwtIssuerUrl: string,

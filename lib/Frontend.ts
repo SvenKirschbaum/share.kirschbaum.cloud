@@ -1,18 +1,18 @@
-import * as cdk from '@aws-cdk/core';
 import * as childProcess from 'child_process';
-import { Bucket, BucketEncryption } from '@aws-cdk/aws-s3';
-import { Duration, RemovalPolicy, Stack } from '@aws-cdk/core';
-import { BucketDeployment, Source } from '@aws-cdk/aws-s3-deployment';
-import { S3Origin } from '@aws-cdk/aws-cloudfront-origins';
-import { BehaviorOptions, CachePolicy, ViewerProtocolPolicy } from '@aws-cdk/aws-cloudfront';
+import { Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
+import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { BehaviorOptions, CachePolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { Construct } from 'constructs';
 import { FrontendProps } from './interfaces/FrontendProps';
 
-export default class Frontend extends cdk.Construct {
+export default class Frontend extends Construct {
   public defaultBehavior: BehaviorOptions;
 
   public additionalBehaviors = new Map<string, BehaviorOptions>();
 
-  constructor(scope: cdk.Construct, id: string, props: FrontendProps) {
+  constructor(scope: Construct, id: string, props: FrontendProps) {
     super(scope, id);
 
     Frontend.buildFrontend({

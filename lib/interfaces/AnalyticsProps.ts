@@ -1,4 +1,4 @@
-import { Table } from '@aws-cdk/aws-dynamodb';
+import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
 export interface AnalyticsProps {
     table: Table

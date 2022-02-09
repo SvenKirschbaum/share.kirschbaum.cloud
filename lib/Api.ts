@@ -1,13 +1,12 @@
-import * as cdk from '@aws-cdk/core';
-import { Duration, Fn } from '@aws-cdk/core';
-import { HttpApi, HttpMethod, HttpStage } from '@aws-cdk/aws-apigatewayv2';
-import { AttributeType, StreamViewType, Table } from '@aws-cdk/aws-dynamodb';
-import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
-import { HttpJwtAuthorizer } from '@aws-cdk/aws-apigatewayv2-authorizers';
-import { DynamoEventSource, SqsDlq } from '@aws-cdk/aws-lambda-event-sources';
-import { Queue } from '@aws-cdk/aws-sqs';
-import { StartingPosition } from '@aws-cdk/aws-lambda';
-import { HttpOrigin } from '@aws-cdk/aws-cloudfront-origins';
+import { Duration, Fn } from 'aws-cdk-lib';
+import { HttpApi, HttpMethod, HttpStage } from '@aws-cdk/aws-apigatewayv2-alpha';
+import { AttributeType, StreamViewType, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
+import { HttpJwtAuthorizer } from '@aws-cdk/aws-apigatewayv2-authorizers-alpha';
+import { DynamoEventSource, SqsDlq } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { StartingPosition } from 'aws-cdk-lib/aws-lambda';
+import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import {
   AllowedMethods,
   BehaviorOptions,
@@ -18,16 +17,17 @@ import {
   OriginRequestPolicy,
   OriginRequestQueryStringBehavior,
   ViewerProtocolPolicy,
-} from '@aws-cdk/aws-cloudfront';
+} from 'aws-cdk-lib/aws-cloudfront';
+import { Construct } from 'constructs';
 import DefaultNodejsFunction from './lambda/DefaultNodejsFunction';
 import { ApiProps } from './interfaces/ApiProps';
 
-export default class Api extends cdk.Construct {
+export default class Api extends Construct {
   public additionalBehaviors = new Map<string, BehaviorOptions>();
 
   public readonly table: Table;
 
-  constructor(scope: cdk.Construct, id: string, props: ApiProps) {
+  constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
     this.table = new Table(this, 'Table', {
@@ -65,9 +65,8 @@ export default class Api extends cdk.Construct {
       stageName: 'api',
     });
 
-    const authorizer = new HttpJwtAuthorizer({
+    const authorizer = new HttpJwtAuthorizer('jwtAuthorizer', props.jwtIssuerUrl, {
       jwtAudience: [props.jwtAudience],
-      jwtIssuer: props.jwtIssuerUrl,
     });
 
     const defaultLambdaEnvironment = {
@@ -133,9 +132,7 @@ export default class Api extends cdk.Construct {
     api.addRoutes({
       path: '/add',
       methods: [HttpMethod.POST],
-      integration: new LambdaProxyIntegration({
-        handler: addShareFunction,
-      }),
+      integration: new HttpLambdaIntegration('addShareIntegration', addShareFunction),
       authorizer,
     });
 
@@ -150,9 +147,7 @@ export default class Api extends cdk.Construct {
     api.addRoutes({
       path: '/completeUpload/{id}',
       methods: [HttpMethod.POST],
-      integration: new LambdaProxyIntegration({
-        handler: completeUploadFunction,
-      }),
+      integration: new HttpLambdaIntegration('completeUploadIntegration', completeUploadFunction),
       authorizer,
     });
 
@@ -165,9 +160,7 @@ export default class Api extends cdk.Construct {
     api.addRoutes({
       path: '/list',
       methods: [HttpMethod.GET],
-      integration: new LambdaProxyIntegration({
-        handler: listSharesFunction,
-      }),
+      integration: new HttpLambdaIntegration('listSharesIntegration', listSharesFunction),
       authorizer,
     });
 
@@ -180,9 +173,7 @@ export default class Api extends cdk.Construct {
     api.addRoutes({
       path: '/share/{id}',
       methods: [HttpMethod.DELETE],
-      integration: new LambdaProxyIntegration({
-        handler: deleteShareFunction,
-      }),
+      integration: new HttpLambdaIntegration('deleteShareIntegration', deleteShareFunction),
       authorizer,
     });
 
@@ -200,9 +191,7 @@ export default class Api extends cdk.Construct {
     api.addRoutes({
       path: '/d/{id}',
       methods: [HttpMethod.GET],
-      integration: new LambdaProxyIntegration({
-        handler: forwardShareFunction,
-      }),
+      integration: new HttpLambdaIntegration('forwardShareIntegration', forwardShareFunction),
     });
   }
 }

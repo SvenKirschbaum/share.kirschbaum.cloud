@@ -1,9 +1,13 @@
-import * as cdk from '@aws-cdk/core';
-import { CfnOutput, Lazy } from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
+import { CfnOutput, Duration, Lazy } from 'aws-cdk-lib';
 import {
-  Distribution, Function, FunctionCode, FunctionEventType,
-} from '@aws-cdk/aws-cloudfront';
-import { Certificate } from '@aws-cdk/aws-certificatemanager';
+  Distribution,
+  HeadersFrameOption,
+  HeadersReferrerPolicy,
+  ResponseHeadersPolicy,
+} from 'aws-cdk-lib/aws-cloudfront';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Construct } from 'constructs';
 import { ShareStackProps } from './interfaces/ShareStackProps';
 import Api from './Api';
 import Frontend from './Frontend';
@@ -13,7 +17,7 @@ import Analytics from './Analytics';
 export default class ShareStack extends cdk.Stack {
   private readonly distribution: Distribution;
 
-  constructor(scope: cdk.Construct, id: string, props: ShareStackProps) {
+  constructor(scope: Construct, id: string, props: ShareStackProps) {
     super(scope, id, props);
 
     const customDomain: boolean = props?.domain !== undefined;
@@ -47,11 +51,31 @@ export default class ShareStack extends cdk.Stack {
       table: api.table,
     });
 
-    // Cloudfront function to add security headers
-    const headerFilter = new Function(this, 'HeaderFilter', {
-      code: FunctionCode.fromFile({
-        filePath: 'lambda/cloudfront/HeaderFilter.js',
-      }),
+    const responseHeaderPolicy = new ResponseHeadersPolicy(this, 'ResponseHeaderPolicy', {
+      securityHeadersBehavior: {
+        strictTransportSecurity: {
+          accessControlMaxAge: Duration.seconds(31536000),
+          includeSubdomains: true,
+          preload: true,
+          override: true,
+        },
+        contentTypeOptions: {
+          override: true,
+        },
+        frameOptions: {
+          frameOption: HeadersFrameOption.DENY,
+          override: true,
+        },
+        xssProtection: {
+          protection: true,
+          override: true,
+          modeBlock: true,
+        },
+        referrerPolicy: {
+          referrerPolicy: HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+          override: true,
+        },
+      },
     });
 
     this.distribution = new Distribution(this, 'Distribution', {
@@ -61,12 +85,7 @@ export default class ShareStack extends cdk.Stack {
 
       defaultBehavior: {
         ...frontend.defaultBehavior,
-        functionAssociations: [
-          {
-            function: headerFilter,
-            eventType: FunctionEventType.VIEWER_RESPONSE,
-          },
-        ],
+        responseHeadersPolicy: responseHeaderPolicy,
       },
 
       logBucket: analytics.logFileBucket,
@@ -82,12 +101,7 @@ export default class ShareStack extends cdk.Stack {
       .forEach(
         (behavior, key) => this.distribution.addBehavior(key, behavior.origin, {
           ...behavior,
-          functionAssociations: [
-            {
-              function: headerFilter,
-              eventType: FunctionEventType.VIEWER_RESPONSE,
-            },
-          ],
+          responseHeadersPolicy: responseHeaderPolicy,
         }),
       );
 

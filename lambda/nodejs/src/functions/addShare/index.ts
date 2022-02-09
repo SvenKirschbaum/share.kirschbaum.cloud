@@ -1,6 +1,6 @@
 import "reflect-metadata";
 
-import {APIGatewayProxyEventV2, APIGatewayProxyResultV2} from "aws-lambda";
+import {APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
 import {AttributeValue, DynamoDBClient, PutItemCommand} from "@aws-sdk/client-dynamodb";
 import {transformAndValidateSync} from "class-transformer-validator";
 import {AddShareRequestDto} from "./AddShareRequestDto";
@@ -10,7 +10,7 @@ import {uploadService} from "../../services/UploadService";
 
 const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
 
-export const handler = async function addShareHandler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
+export const handler = async function addShareHandler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
     const roles = event.requestContext.authorizer?.jwt.claims.roles as string[] | undefined;
 
     if(!roles?.includes('member')) {

@@ -1,7 +1,8 @@
-import { Construct, Stack } from '@aws-cdk/core';
-import { NodejsFunction, NodejsFunctionProps } from '@aws-cdk/aws-lambda-nodejs';
-import { Code, LayerVersion, Runtime } from '@aws-cdk/aws-lambda';
+import { Stack } from 'aws-cdk-lib';
+import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Code, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as nodePackageJson from '../../lambda/nodejs/package.json';
+import {Construct} from "constructs";
 
 export default class DefaultNodejsFunction extends NodejsFunction {
   constructor(scope: Construct, id: string, props: NodejsFunctionProps) {

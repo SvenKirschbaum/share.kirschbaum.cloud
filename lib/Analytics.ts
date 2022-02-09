@@ -1,9 +1,10 @@
-import { BlockPublicAccess, Bucket, BucketEncryption } from '@aws-cdk/aws-s3';
-import { Construct, Duration } from '@aws-cdk/core';
-import { LambdaDestination } from '@aws-cdk/aws-s3-notifications';
-import * as sfn from '@aws-cdk/aws-stepfunctions';
-import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
-import { JsonPath } from '@aws-cdk/aws-stepfunctions';
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { Duration } from 'aws-cdk-lib';
+import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
+import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import { JsonPath } from 'aws-cdk-lib/aws-stepfunctions';
+import { Construct } from 'constructs';
 import { AnalyticsProps } from './interfaces/AnalyticsProps';
 import DefaultNodejsFunction from './lambda/DefaultNodejsFunction';
 

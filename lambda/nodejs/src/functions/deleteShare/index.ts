@@ -1,9 +1,9 @@
-import {APIGatewayProxyEventV2, APIGatewayProxyResultV2} from "aws-lambda";
+import {APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
 import {DynamoDBClient, DeleteItemCommand} from "@aws-sdk/client-dynamodb";
 
 const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
 
-export const handler = async function deleteShareHandler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
+export const handler = async function deleteShareHandler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
     const roles = event.requestContext.authorizer?.jwt.claims.roles as string[] | undefined;
 
     if(!roles?.includes('member')) {

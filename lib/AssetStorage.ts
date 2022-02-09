@@ -1,9 +1,8 @@
-import * as cdk from '@aws-cdk/core';
 import {
   BlockPublicAccess, Bucket, BucketEncryption, HttpMethods,
-} from '@aws-cdk/aws-s3';
-import { Duration } from '@aws-cdk/core';
-import { S3Origin } from '@aws-cdk/aws-cloudfront-origins';
+} from 'aws-cdk-lib/aws-s3';
+import { Duration } from 'aws-cdk-lib';
+import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import {
   BehaviorOptions,
   CachePolicy,
@@ -12,11 +11,12 @@ import {
   OriginRequestPolicy, OriginRequestQueryStringBehavior,
   PublicKey,
   ViewerProtocolPolicy,
-} from '@aws-cdk/aws-cloudfront';
-import { ISecret, Secret } from '@aws-cdk/aws-secretsmanager';
+} from 'aws-cdk-lib/aws-cloudfront';
+import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import { Construct } from 'constructs';
 import { AssetStorageProps } from './interfaces/AssetStorageProps';
 
-export default class AssetStorage extends cdk.Construct {
+export default class AssetStorage extends Construct {
   public additionalBehaviors = new Map<string, BehaviorOptions>();
 
   public publicKeyId: string;
@@ -25,7 +25,7 @@ export default class AssetStorage extends cdk.Construct {
 
   public fileShareBucket: Bucket;
 
-  constructor(scope: cdk.Construct, id: string, props: AssetStorageProps) {
+  constructor(scope: Construct, id: string, props: AssetStorageProps) {
     super(scope, id);
 
     this.fileShareBucket = new Bucket(this, 'Bucket', {
