@@ -3,6 +3,7 @@ import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-node
 import { Code, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as nodePackageJson from '../../lambda/nodejs/package.json';
 import {Construct} from "constructs";
+import {RetentionDays} from "aws-cdk-lib/aws-logs";
 
 export default class DefaultNodejsFunction extends NodejsFunction {
   constructor(scope: Construct, id: string, props: NodejsFunctionProps) {
@@ -28,6 +29,7 @@ export default class DefaultNodejsFunction extends NodejsFunction {
       },
       runtime: Runtime.NODEJS_14_X,
       layers: [layer],
+      logRetention: RetentionDays.TWO_WEEKS,
     });
   }
 }
