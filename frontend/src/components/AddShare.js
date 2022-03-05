@@ -32,8 +32,6 @@ import RequestFileIcon from "../icons/RequestFileIcon";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import UploadProgressDialog from "./dialogs/UploadProgressDialog";
 
-
-
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 const forwardURLPrefix = window.location.protocol + '//' + window.location.host + '/d/';
 const requestURLPrefix = window.location.protocol + '//' + window.location.host + '/r/';
@@ -180,7 +178,7 @@ function AddFile() {
                 suggestedTitle={suggestedTitle}
             >
                 <FormGroup row>
-                    <Input type="file" disableUnderline={true} fullWidth inputRef={fileInput} onChange={onFileChange} />
+                    <Input type="file" disableUnderline={true} inputRef={fileInput} sx={{margin: '10px auto'}} onChange={onFileChange} />
                 </FormGroup>
             </BaseAddDialog>
             <UploadProgressDialog
