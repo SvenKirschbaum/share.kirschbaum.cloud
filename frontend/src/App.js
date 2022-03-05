@@ -7,8 +7,11 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    makeStyles
-} from "@material-ui/core";
+    ThemeProvider,
+    StyledEngineProvider,
+} from "@mui/material";
+
+import makeStyles from '@mui/styles/makeStyles';
 
 import keycloak from "./keycloak";
 import "@fontsource/roboto"

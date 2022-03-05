@@ -1,20 +1,29 @@
 import {
     Button,
-    Card, CardActions,
+    Card,
+    CardActions,
     CardContent,
-    CardHeader, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+    CardHeader,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
     Fab,
     FormControlLabel,
-    FormGroup, Input, LinearProgress,
-    makeStyles,
+    FormGroup,
+    Input,
+    LinearProgress,
     Switch,
-    TextField
-} from "@material-ui/core";
+    TextField,
+} from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
 import {DateTimePicker} from '@material-ui/pickers';
 import {Link, useHistory} from "react-router-dom";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import moment from "moment";
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
@@ -32,6 +41,8 @@ const useStyles = makeStyles({
         textAlign: 'center'
     }
 });
+
+
 
 function AddShare() {
     const classes = useStyles();
@@ -173,7 +184,7 @@ function AddShare() {
                     </FormGroup>
                 </CardContent>
                 <CardActions className={classes.cardActions}>
-                    <Fab color="secondary" size={"small"} to={'/'} component={Link}>
+                    <Fab color="error" size={"small"} to={'/'} component={Link}>
                         <ArrowBackIcon />
                     </Fab>
                     { loading && <CircularProgress /> }

@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 
 import './DropFile.css';
-import {Backdrop, Card, CardContent} from "@material-ui/core";
+import {Backdrop, Card, CardContent} from "@mui/material";
 import {useHistory} from "react-router-dom";
 
 function DropFile(props) {

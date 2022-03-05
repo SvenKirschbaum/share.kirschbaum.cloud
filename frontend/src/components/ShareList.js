@@ -2,18 +2,23 @@ import React, {useEffect, useState} from "react";
 import {
     Card,
     CardContent,
-    CardHeader, CircularProgress, IconButton,
+    CardHeader,
+    CircularProgress,
+    IconButton,
     List,
-    ListItem, ListItemIcon, ListItemSecondaryAction,
-    ListItemText, makeStyles,
-} from "@material-ui/core";
+    ListItem,
+    ListItemIcon,
+    ListItemSecondaryAction,
+    ListItemText,
+} from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
 import {Link} from "react-router-dom";
 
-import AddIcon from '@material-ui/icons/Add';
-import AttachFileIcon from '@material-ui/icons/AttachFile';
-import DeleteIcon from '@material-ui/icons/Delete';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
-import LinkIcon from '@material-ui/icons/Link';
+import AddIcon from '@mui/icons-material/Add';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import DeleteIcon from '@mui/icons-material/Delete';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
+import LinkIcon from '@mui/icons-material/Link';
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 
@@ -49,11 +54,11 @@ function ShareEntry(props) {
             </ListItemIcon>
             <ListItemText secondary={targetURL} onClick={() => window.location.href = targetURL}>{props.title}</ListItemText>
             <ListItemSecondaryAction>
-                <IconButton onClick={copyURL}>
+                <IconButton onClick={copyURL} size="large">
                     <FileCopyIcon />
                 </IconButton>
-                <IconButton onClick={props.delete}>
-                    <DeleteIcon color={"secondary"} />
+                <IconButton onClick={props.delete} size="large">
+                    <DeleteIcon color={"error"} />
                 </IconButton>
             </ListItemSecondaryAction>
         </ListItem>
@@ -89,7 +94,7 @@ function ShareList() {
 
     return (
         <Card>
-            <CardHeader title={'Shares'} action={<IconButton to={'/add'} component={Link}><AddIcon /></IconButton>} />
+            <CardHeader title={'Shares'} action={<IconButton to={'/add'} component={Link} size="large"><AddIcon /></IconButton>} />
             <CardContent style={{textAlign: 'center'}}>
                 { loading ? <CircularProgress /> :
                     <List>
