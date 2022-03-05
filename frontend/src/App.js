@@ -20,6 +20,7 @@ import {LocalizationProvider} from "@mui/lab";
 import DateAdapter from '@mui/lab/AdapterMoment';
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import RequestShare from "./components/RequestShare";
+import NotFound from "./components/NotFound";
 
 function AuthorizationBarrier(props) {
     const {keycloak} = useKeycloak();
@@ -95,6 +96,9 @@ function App() {
                                         </Route>
                                         <Route path={'/add'}>
                                           <AddShare />
+                                        </Route>
+                                        <Route>
+                                            <NotFound />
                                         </Route>
                                       </Switch>
                                     </Container>

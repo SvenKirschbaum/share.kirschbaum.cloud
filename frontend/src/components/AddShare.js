@@ -31,6 +31,7 @@ import {DateTimePicker} from "@mui/lab";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import UploadProgressDialog from "./dialogs/UploadProgressDialog";
+import NotFound from "./NotFound";
 
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 const forwardURLPrefix = window.location.protocol + '//' + window.location.host + '/d/';
@@ -50,6 +51,9 @@ function AddShare() {
             </Route>
             <Route path="/add/request">
                 <AddRequest />
+            </Route>
+            <Route>
+                <NotFound />
             </Route>
         </Switch>
     );
