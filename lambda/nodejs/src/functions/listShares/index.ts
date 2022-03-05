@@ -19,7 +19,7 @@ export const handler = async function listSharesHandler(event: APIGatewayProxyEv
     const queryCommand = new QueryCommand({
         TableName: process.env.TABLE_NAME,
         IndexName: 'user-index',
-        ProjectionExpression: 'PK,title,expire,#t,clicks',
+        ProjectionExpression: 'PK,title,created,expire,#t,clicks',
         FilterExpression: 'attribute_not_exists(uploadId)',
         KeyConditionExpression: '#u = :sub',
         ExpressionAttributeNames: {
@@ -52,6 +52,8 @@ export const handler = async function listSharesHandler(event: APIGatewayProxyEv
                     id: value.PK.S?.replace('SHARE#', ''),
                     title: value.title.S,
                     type: value.type.S,
+                    created: value.created?.N,
+                    expire: value.expire.N,
                     clicks: Object.entries(value.clicks.M!).reduce((result, [date, clickValue]) => {
                         result[date] = parseInt(clickValue.N!);
                         return result;
