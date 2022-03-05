@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {ReactKeycloakProvider, useKeycloak} from "@react-keycloak/web";
 import {
     Container,
@@ -19,9 +19,14 @@ import DropFile from "./components/DropFile";
 import {LocalizationProvider} from "@mui/lab";
 import DateAdapter from '@mui/lab/AdapterMoment';
 import {createTheme, ThemeProvider} from "@mui/material/styles";
+import RequestShare from "./components/RequestShare";
 
 function AuthorizationBarrier(props) {
     const {keycloak} = useKeycloak();
+
+    useEffect(() => {
+        if(!keycloak.authenticated) keycloak.login();
+    }, [keycloak.authenticated])
 
     const isAuthorized = keycloak.tokenParsed?.roles?.includes('member');
 
@@ -58,7 +63,7 @@ function App() {
 
     return (
       <ReactKeycloakProvider authClient={keycloak} LoadingComponent={<React.Fragment />} initOptions={{
-        onLoad: 'login-required',
+        onLoad: '',
         promiseType: 'native',
         flow: 'standard',
         pkceMethod: 'S256',
@@ -67,25 +72,37 @@ function App() {
           <ThemeProvider theme={theme}>
               <LocalizationProvider dateAdapter={DateAdapter}>
               <CssBaseline />
-                <AuthorizationBarrier>
-                    <BrowserRouter>
-                        <DropFile>
+                <BrowserRouter>
+                    <Switch>
+                        <Route path={"/r/:id"}>
                             <Container sx={{
                                 marginTop: '4em',
                                 marginBottom: '4em',
                             }} maxWidth={"sm"}>
-                              <Switch>
-                                <Route path={'/'} exact>
-                                  <ShareList />
-                                </Route>
-                                <Route path={'/add'}>
-                                  <AddShare />
-                                </Route>
-                              </Switch>
+                                <RequestShare />
                             </Container>
-                        </DropFile>
-                    </BrowserRouter>
-                </AuthorizationBarrier>
+                        </Route>
+                        <Route>
+                            <AuthorizationBarrier>
+                                <DropFile>
+                                    <Container sx={{
+                                        marginTop: '4em',
+                                        marginBottom: '4em',
+                                    }} maxWidth={"sm"}>
+                                      <Switch>
+                                        <Route path={'/'} exact>
+                                          <ShareList />
+                                        </Route>
+                                        <Route path={'/add'}>
+                                          <AddShare />
+                                        </Route>
+                                      </Switch>
+                                    </Container>
+                                </DropFile>
+                            </AuthorizationBarrier>
+                        </Route>
+                    </Switch>
+                </BrowserRouter>
               </LocalizationProvider>
           </ThemeProvider>
       </ReactKeycloakProvider>

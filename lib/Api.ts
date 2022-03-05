@@ -144,11 +144,19 @@ export default class Api extends Construct {
     this.table.grantReadWriteData(completeUploadFunction);
     props.fileBucket.grantPut(completeUploadFunction);
 
+    const completeUploadIntegration = new HttpLambdaIntegration('completeUploadIntegration', completeUploadFunction);
+
     api.addRoutes({
       path: '/completeUpload/{id}',
       methods: [HttpMethod.POST],
-      integration: new HttpLambdaIntegration('completeUploadIntegration', completeUploadFunction),
+      integration: completeUploadIntegration,
       authorizer,
+    });
+
+    api.addRoutes({
+      path: '/public/completeUpload/{id}',
+      methods: [HttpMethod.POST],
+      integration: completeUploadIntegration,
     });
 
     const listSharesFunction = new DefaultNodejsFunction(this, 'ListShares', {
@@ -202,7 +210,7 @@ export default class Api extends Construct {
     props.fileBucket.grantPut(fullfillShareRequestFunction);
 
     api.addRoutes({
-      path: '/request/{id}',
+      path: '/public/request/{id}',
       methods: [HttpMethod.GET, HttpMethod.POST],
       integration: new HttpLambdaIntegration('fullfillShareRequestIntegration', fullfillShareRequestFunction),
     });

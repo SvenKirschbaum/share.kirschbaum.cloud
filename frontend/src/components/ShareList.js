@@ -11,7 +11,6 @@ import {
     ListItemSecondaryAction,
     ListItemText,
 } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import {Link} from "react-router-dom";
 
 import AddIcon from '@mui/icons-material/Add';
@@ -21,38 +20,39 @@ import FileCopyIcon from '@mui/icons-material/FileCopy';
 import LinkIcon from '@mui/icons-material/Link';
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
-
-const useShareEntryStyles = makeStyles({
-    root: {
-        paddingRight: 104,
-        '& .MuiListItemText-secondary': {
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            direction: 'rtl',
-            cursor: 'pointer'
-        },
-        '& .MuiListItemText-primary': {
-            wordBreak: 'break-all'
-        }
-    }
-});
+import RequestFileIcon from "../icons/RequestFileIcon";
 
 function ShareEntry(props) {
-    const classes = useShareEntryStyles();
-
-    const targetURL = window.location.protocol + '//' + window.location.host + '/d/' + props.id;
+    const targetURL = window.location.protocol + '//' + window.location.host + (props.type === 'FILE_REQUEST' ? '/r/' : '/d/') + props.id;
 
     const copyURL = () => {
         navigator.clipboard.writeText(targetURL).then();
     };
 
     return (
-        <ListItem className={classes.root}>
+        <ListItem sx={{paddingRight: '104px'}}>
             <ListItemIcon>
                 {props.type === 'FILE' && <AttachFileIcon />}
                 {props.type === 'LINK' && <LinkIcon />}
+                {props.type === 'FILE_REQUEST' && <RequestFileIcon />}
             </ListItemIcon>
-            <ListItemText secondary={targetURL} onClick={() => window.location.href = targetURL}>{props.title}</ListItemText>
+            <ListItemText
+                secondary={targetURL}
+                onClick={() => window.location.href = targetURL}
+                sx={{
+                    '& .MuiListItemText-secondary': {
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        direction: 'rtl',
+                        cursor: 'pointer'
+                    },
+                    '& .MuiListItemText-primary': {
+                        wordBreak: 'break-all'
+                    }
+                }}
+            >
+                {props.title}
+            </ListItemText>
             <ListItemSecondaryAction>
                 <IconButton onClick={copyURL} size="large">
                     <FileCopyIcon />

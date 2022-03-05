@@ -1,4 +1,4 @@
-import {APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
+import {APIGatewayProxyEventV2, APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
 import {DynamoDBClient, GetItemCommand, PutItemCommand} from "@aws-sdk/client-dynamodb";
 import {uploadService} from "../../services/UploadService";
 import {transformAndValidateSync} from "class-transformer-validator";
@@ -7,8 +7,6 @@ import {CompleteUploadDto} from "./CompleteUploadDto";
 const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
 
 export const handler = async function completeUpload(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
-    const roles = event.requestContext.authorizer?.jwt.claims.roles as string[] | undefined;
-
     const id = event.pathParameters?.id;
 
     if(!id) {
@@ -57,7 +55,7 @@ export const handler = async function completeUpload(event: APIGatewayProxyEvent
                 };
             }
 
-            if((share.type.S !== 'FILE' && share.type.S !== 'FILE_REQUEST') || !share.uploadId || (share.user.S !== event.requestContext.authorizer?.jwt.claims.sub && share.type.S !== 'FILE_REQUEST') ) {
+            if((share.type.S !== 'FILE' && share.type.S !== 'FILE_REQUEST') || !share.uploadId || (share.user.S !== event.requestContext.authorizer?.jwt?.claims?.sub && share.type.S !== 'FILE_REQUEST') ) {
                 return {
                     statusCode: 409,
                     headers: {

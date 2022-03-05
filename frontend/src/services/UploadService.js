@@ -29,8 +29,10 @@ class UploadService {
             })
     }
 
-    async _completeUpload(shareId, results) {
-        await axios.post('/api/completeUpload/'+shareId, {
+    async _completeUpload(shareId, results, isRequest) {
+        const url = isRequest ? '/api/public/completeUpload/' : '/api/completeUpload/';
+
+        await axios.post(url+shareId, {
             parts: results
         },
     {
@@ -40,7 +42,7 @@ class UploadService {
         })
     }
 
-    uploadFile(shareId, file, partUrls, onProgress, onSpeedChange) {
+    uploadFile(shareId, file, partUrls, onProgress, onSpeedChange, isRequest=false) {
 
         const fps = 3;
         const numParts = partUrls.length;
@@ -92,7 +94,7 @@ class UploadService {
                 })
         ).then(async () => {
             clearInterval(progressUpdateTimer);
-            await this._completeUpload(shareId, results);
+            await this._completeUpload(shareId, results, isRequest);
         })
     }
 }

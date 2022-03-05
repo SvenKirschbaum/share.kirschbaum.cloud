@@ -9,12 +9,12 @@ import {
     DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle,
+    DialogTitle, Divider,
     Fab,
     FormGroup,
     Input,
-    LinearProgress, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Paper,
-    TextField,
+    List, ListItem, ListItemButton, ListItemIcon, ListItemText, Paper,
+    TextField, Typography,
 } from "@mui/material";
 import {Link, Route, Switch, useHistory} from "react-router-dom";
 import React, {useCallback, useEffect, useRef, useState} from "react";
@@ -27,15 +27,16 @@ import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import {uploadService} from "../services/UploadService";
 import {useLocation} from "react-router";
-import prettyBytes from "pretty-bytes";
 import {DateTimePicker} from "@mui/lab";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import UploadProgressDialog from "./dialogs/UploadProgressDialog";
 
 
 
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
-const targetURLPrefix = window.location.protocol + '//' + window.location.host + '/d/';
+const forwardURLPrefix = window.location.protocol + '//' + window.location.host + '/d/';
+const requestURLPrefix = window.location.protocol + '//' + window.location.host + '/r/';
 
 function AddShare() {
     return (
@@ -49,9 +50,9 @@ function AddShare() {
             <Route path="/add/file">
                 <AddFile />
             </Route>
-            {/*<Route path="/add/request">*/}
-            {/*    <AddRequest />*/}
-            {/*</Route>*/}
+            <Route path="/add/request">
+                <AddRequest />
+            </Route>
         </Switch>
     );
 }
@@ -64,7 +65,7 @@ function TypeSelection() {
                 <List>
                     <TypeOption icon={AddLinkIcon} title={"Shorten Link"} to={"/add/link"} />
                     <TypeOption icon={FileUploadIcon} title={"Upload File"} to={"/add/file"} />
-                    <TypeOption icon={RequestFileIcon} title={"Request File"} to={"/add/request"} disabled />
+                    <TypeOption icon={RequestFileIcon} title={"Request File"} to={"/add/request"} />
                 </List>
             </CardContent>
             <CardActions sx={{
@@ -182,19 +183,11 @@ function AddFile() {
                     <Input type="file" disableUnderline={true} fullWidth inputRef={fileInput} onChange={onFileChange} />
                 </FormGroup>
             </BaseAddDialog>
-            <Dialog
+            <UploadProgressDialog
                 open={showUpload}
-                sx={{
-                    textAlign: 'center'
-                }}
-            >
-                <DialogTitle>Uploading File</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>Your Upload is in progress</DialogContentText>
-                    <LinearProgress variant="determinate" value={uploadProgress*100} />
-                    <div>{prettyBytes(uploadSpeedBPS)}/s</div>
-                </DialogContent>
-            </Dialog>
+                uploadProgress={uploadProgress}
+                uploadSpeedBPS={uploadSpeedBPS}
+            />
         </React.Fragment>
     );
 }
@@ -203,7 +196,28 @@ function AddRequest() {
     return (
         <BaseAddDialog
             title={"Add Request"}
+            ignoreClipboard={true}
+            getRequestData={() => ({
+                type: 'FILE_REQUEST'
+            })}
+            successMessage={
+                (props) =>
+                    <React.Fragment>
+                        You can forward the following link to request a fileupload: <a href={requestURLPrefix + props.addedId}>{requestURLPrefix + props.addedId}</a>
+                    </React.Fragment>
+
+            }
+            onResponse={async (res) => {
+                navigator.clipboard.writeText(requestURLPrefix + res.data.shareId).then();
+            }}
         >
+            <Divider sx={{
+                my: 2
+            }}/>
+            <Typography>
+                This page allows you to generate a special link, which can be used by anyone to upload a single file.
+                The state of the request will be displayed in the list of your shares. After the upload has been completed you can download it from there.
+            </Typography>
         </BaseAddDialog>
     );
 }
@@ -257,7 +271,7 @@ function BaseAddDialog(props) {
                 await props.onResponse(res)
             }
 
-            navigator.clipboard.writeText(targetURLPrefix + res.data.shareId).then();
+            if(!props.ignoreClipboard) navigator.clipboard.writeText(forwardURLPrefix + res.data.shareId).then();
             setShowSuccess(true);
         })
         .catch(error => {
@@ -298,7 +312,7 @@ function BaseAddDialog(props) {
             >
                 <DialogTitle>Share successfully added</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>Your Share is accessible via the following Link: <a href={targetURLPrefix + addedId}>{targetURLPrefix + addedId}</a></DialogContentText>
+                    <DialogContentText>{props.successMessage ? props.successMessage({addedId}) : <React.Fragment>Your Share is accessible via the following Link: <a href={forwardURLPrefix + addedId}>{forwardURLPrefix + addedId}</a></React.Fragment>}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={event => history.push('/')} color={"primary"} variant={"contained"}>Ok</Button>
