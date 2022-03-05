@@ -72,9 +72,10 @@ export const handler = async function forwardShareHandler(event: APIGatewayProxy
 
         const signer = await getSigner();
         const title = share.title.S;
+        const fileName = share.fileName?.S;
 
         const signedUrl = signer.getSignedUrl({
-            url: 'https://' + process.env.DOMAIN + '/a/' + share.file.S + '?response-content-disposition=' + fixedEncodeURIComponent(`inline; filename="${title}"`),
+            url: 'https://' + process.env.DOMAIN + '/a/' + share.file.S + '?response-content-disposition=' + fixedEncodeURIComponent(`inline; filename="${fileName ?? title}"`),
             expires: expiration.unix(),
         })
 

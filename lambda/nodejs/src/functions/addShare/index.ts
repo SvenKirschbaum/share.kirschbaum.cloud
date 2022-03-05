@@ -41,6 +41,9 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
                 },
                 uploadId: {
                     S: uploadInfo.uploadId
+                },
+                fileName: {
+                    S: requestDto.fileName
                 }
             });
 
