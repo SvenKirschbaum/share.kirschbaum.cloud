@@ -23,41 +23,6 @@ export const handler: DynamoDBStreamHandler = async function onShareDeletion(eve
 
                         await s3.send(deleteItemCommand);
                     }
-
-                    const queryCommand = new QueryCommand({
-                        TableName: process.env.TABLE_NAME,
-                        KeyConditionExpression: 'PK = :pk',
-                        ExpressionAttributeValues: {
-                            ':pk': {
-                                S: entry?.SK.S
-                            }
-                        },
-                        ProjectionExpression: 'PK,SK',
-                        Limit: 25
-                    });
-
-                    let queryCommandOutput;
-                    const deletePromises = [];
-                    do {
-                        queryCommandOutput = await ddb.send(queryCommand);
-                        if(queryCommandOutput.LastEvaluatedKey) queryCommand.input.ExclusiveStartKey = queryCommandOutput.LastEvaluatedKey;
-
-                        if(queryCommandOutput.Items && queryCommandOutput.Items.length > 0) {
-                            const batchDelete = new BatchWriteItemCommand({
-                                RequestItems: {
-                                    [process.env.TABLE_NAME as string]: queryCommandOutput.Items.map((e) => ({
-                                        DeleteRequest: {
-                                            Key: e
-                                        }
-                                    }))
-                                }
-                            });
-
-                            deletePromises.push(ddb.send(batchDelete));
-                        }
-                    }while (queryCommandOutput.LastEvaluatedKey);
-
-                    await Promise.all(deletePromises);
                 }
             }
         })

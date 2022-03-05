@@ -20,7 +20,7 @@ export const handler = async function listSharesHandler(event: APIGatewayProxyEv
         TableName: process.env.TABLE_NAME,
         IndexName: 'user-index',
         ProjectionExpression: 'PK,title,created,expire,#t,clicks',
-        FilterExpression: 'attribute_not_exists(uploadId)',
+        FilterExpression: 'attribute_not_exists(uploadId) or #t = :req',
         KeyConditionExpression: '#u = :sub',
         ExpressionAttributeNames: {
             '#t': 'type',
@@ -29,6 +29,9 @@ export const handler = async function listSharesHandler(event: APIGatewayProxyEv
         ExpressionAttributeValues: {
             ':sub': {
                 S: event.requestContext.authorizer?.jwt.claims.sub as string
+            },
+            ':req': {
+                S: 'FILE_REQUEST'
             }
         }
     });

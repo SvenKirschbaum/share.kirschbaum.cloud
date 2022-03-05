@@ -193,5 +193,18 @@ export default class Api extends Construct {
       methods: [HttpMethod.GET],
       integration: new HttpLambdaIntegration('forwardShareIntegration', forwardShareFunction),
     });
+
+    const fullfillShareRequestFunction = new DefaultNodejsFunction(this, 'FullfillShareRequest', {
+      entry: 'lambda/nodejs/src/functions/fullfillShareRequest/index.ts',
+      environment: defaultLambdaEnvironment,
+    });
+    this.table.grantReadWriteData(fullfillShareRequestFunction);
+    props.fileBucket.grantPut(fullfillShareRequestFunction);
+
+    api.addRoutes({
+      path: '/request/{id}',
+      methods: [HttpMethod.GET, HttpMethod.POST],
+      integration: new HttpLambdaIntegration('fullfillShareRequestIntegration', fullfillShareRequestFunction),
+    });
   }
 }

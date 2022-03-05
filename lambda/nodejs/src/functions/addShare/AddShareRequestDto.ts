@@ -5,7 +5,7 @@ export class AddShareRequestDto {
     @IsNotEmpty()
     title: string;
 
-    @IsIn(['LINK', 'FILE'])
+    @IsIn(['LINK', 'FILE', 'FILE_REQUEST'])
     type: string;
 
     @IsDateString()

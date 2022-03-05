@@ -50,7 +50,7 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
             responseContent.uploadUrls = uploadInfo.partUrls;
 
         }
-        else {
+        else if (requestDto.type === 'LINK') {
             itemContent.link = {
                 S: requestDto.link
             };
