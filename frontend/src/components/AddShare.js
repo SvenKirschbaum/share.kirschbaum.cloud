@@ -19,7 +19,6 @@ import {
     TextField,
 } from "@mui/material";
 import makeStyles from '@mui/styles/makeStyles';
-import {DateTimePicker} from '@material-ui/pickers';
 import {Link, useHistory} from "react-router-dom";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 
@@ -30,6 +29,7 @@ import axios from "axios";
 import {uploadService} from "../services/UploadService";
 import {useLocation} from "react-router";
 import prettyBytes from "pretty-bytes";
+import {DateTimePicker} from "@mui/lab";
 
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 
@@ -41,8 +41,6 @@ const useStyles = makeStyles({
         textAlign: 'center'
     }
 });
-
-
 
 function AddShare() {
     const classes = useStyles();
@@ -180,7 +178,7 @@ function AddShare() {
                         </FormGroup>
                     }
                     <FormGroup row>
-                        <DateTimePicker label={"Expiration Date"} format={"MMMM Do YYYY HH:mm"} disablePast fullWidth margin={"normal"} inputVariant={"filled"} ampm={false} value={expire} onChange={setExpire} />
+                        <DateTimePicker renderInput={props => <TextField {...props} label={"Expiration Date"} fullWidth margin={"normal"} variant={"filled"} />} inputFormat={"MMMM Do YYYY HH:mm"} disablePast ampm={false} value={expire} onChange={setExpire} />
                     </FormGroup>
                 </CardContent>
                 <CardActions className={classes.cardActions}>

@@ -7,8 +7,6 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    ThemeProvider,
-    StyledEngineProvider,
 } from "@mui/material";
 
 import makeStyles from '@mui/styles/makeStyles';
@@ -19,9 +17,9 @@ import './App.css';
 import ShareList from "./components/ShareList";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import AddShare from "./components/AddShare";
-import {MuiPickersUtilsProvider} from "@material-ui/pickers";
-import MomentUtils from '@date-io/moment';
 import DropFile from "./components/DropFile";
+import {LocalizationProvider} from "@mui/lab";
+import DateAdapter from '@mui/lab/AdapterMoment';
 
 
 const useStyles = makeStyles({
@@ -67,7 +65,7 @@ function App() {
         pkceMethod: 'S256',
         checkLoginIframe: false,
       }}>
-          <MuiPickersUtilsProvider utils={MomentUtils}>
+          <LocalizationProvider dateAdapter={DateAdapter}>
             <CssBaseline />
             <AuthorizationBarrier>
                 <BrowserRouter>
@@ -85,7 +83,7 @@ function App() {
                     </DropFile>
                 </BrowserRouter>
             </AuthorizationBarrier>
-          </MuiPickersUtilsProvider>
+          </LocalizationProvider>
       </ReactKeycloakProvider>
   );
 }
