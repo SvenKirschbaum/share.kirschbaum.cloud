@@ -6,10 +6,8 @@ import {
     Dialog,
     DialogContent,
     DialogContentText,
-    DialogTitle,
+    DialogTitle, useMediaQuery,
 } from "@mui/material";
-
-import makeStyles from '@mui/styles/makeStyles';
 
 import keycloak from "./keycloak";
 import "@fontsource/roboto"
@@ -20,14 +18,7 @@ import AddShare from "./components/AddShare";
 import DropFile from "./components/DropFile";
 import {LocalizationProvider} from "@mui/lab";
 import DateAdapter from '@mui/lab/AdapterMoment';
-
-
-const useStyles = makeStyles({
-    container: {
-        marginTop: '4em',
-        marginBottom: '4em',
-    }
-});
+import {createTheme, ThemeProvider} from "@mui/material/styles";
 
 function AuthorizationBarrier(props) {
     const {keycloak} = useKeycloak();
@@ -54,10 +45,18 @@ function AuthorizationBarrier(props) {
 }
 
 function App() {
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
-  const classes = useStyles();
+    const theme = React.useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode: prefersDarkMode ? 'dark' : 'light'
+                }
+            }
+    ), [prefersDarkMode]);
 
-  return (
+    return (
       <ReactKeycloakProvider authClient={keycloak} LoadingComponent={<React.Fragment />} initOptions={{
         onLoad: 'login-required',
         promiseType: 'native',
@@ -65,25 +64,30 @@ function App() {
         pkceMethod: 'S256',
         checkLoginIframe: false,
       }}>
-          <LocalizationProvider dateAdapter={DateAdapter}>
-            <CssBaseline />
-            <AuthorizationBarrier>
-                <BrowserRouter>
-                    <DropFile>
-                        <Container className={classes.container} maxWidth={"sm"}>
-                          <Switch>
-                            <Route path={'/'} exact>
-                              <ShareList />
-                            </Route>
-                            <Route path={'/add'} exact>
-                              <AddShare />
-                            </Route>
-                          </Switch>
-                        </Container>
-                    </DropFile>
-                </BrowserRouter>
-            </AuthorizationBarrier>
-          </LocalizationProvider>
+          <ThemeProvider theme={theme}>
+              <LocalizationProvider dateAdapter={DateAdapter}>
+              <CssBaseline />
+                <AuthorizationBarrier>
+                    <BrowserRouter>
+                        <DropFile>
+                            <Container sx={{
+                                marginTop: '4em',
+                                marginBottom: '4em',
+                            }} maxWidth={"sm"}>
+                              <Switch>
+                                <Route path={'/'} exact>
+                                  <ShareList />
+                                </Route>
+                                <Route path={'/add'}>
+                                  <AddShare />
+                                </Route>
+                              </Switch>
+                            </Container>
+                        </DropFile>
+                    </BrowserRouter>
+                </AuthorizationBarrier>
+              </LocalizationProvider>
+          </ThemeProvider>
       </ReactKeycloakProvider>
   );
 }

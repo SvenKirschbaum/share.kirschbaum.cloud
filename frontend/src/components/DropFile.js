@@ -42,7 +42,7 @@ function DropFile(props) {
 
             setIsDropping(false);
             history.push({
-                pathname: '/add',
+                pathname: '/add/file',
                 state: e.dataTransfer.files
             });
         }
