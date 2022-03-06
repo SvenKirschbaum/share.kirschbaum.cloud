@@ -10,7 +10,7 @@ import { FrontendProps } from './interfaces/FrontendProps';
 export default class Frontend extends Construct {
   public defaultBehavior: BehaviorOptions;
 
-  public additionalBehaviors = new Map<string, BehaviorOptions>();
+  public additionalBehaviors: Record<string, BehaviorOptions> = {};
 
   constructor(scope: Construct, id: string, props: FrontendProps) {
     super(scope, id);
@@ -51,7 +51,7 @@ export default class Frontend extends Construct {
       }),
     };
 
-    this.additionalBehaviors.set('/index.html', {
+    this.additionalBehaviors['/index.html'] = {
       origin: s3Origin,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       cachePolicy: new CachePolicy(this, 'ConfigCachePolicy', {
@@ -59,7 +59,7 @@ export default class Frontend extends Construct {
         defaultTtl: Duration.minutes(5),
         maxTtl: Duration.minutes(5),
       }),
-    });
+    };
   }
 
   private static buildFrontend(environment: {[p: string]: string}) {

@@ -1,8 +1,9 @@
 import { StackProps } from 'aws-cdk-lib';
+import { DelegationOptions } from './DelegationOptions';
 
 export interface ShareStackProps extends StackProps {
-    domain?: string;
-    certificateARN?: string;
+    domain: string;
+    delegation?: DelegationOptions
     keycloakUrl: string;
     keycloakRealm: string;
     frontendClientId: string;

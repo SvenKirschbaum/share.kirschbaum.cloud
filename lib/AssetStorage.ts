@@ -17,7 +17,7 @@ import { Construct } from 'constructs';
 import { AssetStorageProps } from './interfaces/AssetStorageProps';
 
 export default class AssetStorage extends Construct {
-  public additionalBehaviors = new Map<string, BehaviorOptions>();
+  public additionalBehaviors:Record<string, BehaviorOptions> = {};
 
   public publicKeyId: string;
 
@@ -61,7 +61,7 @@ export default class AssetStorage extends Construct {
 
     const fileShareOrigin = new S3Origin(this.fileShareBucket);
 
-    this.additionalBehaviors.set('/a/*', {
+    this.additionalBehaviors['/a/*'] = {
       origin: fileShareOrigin,
       cachePolicy: CachePolicy.CACHING_OPTIMIZED,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -70,6 +70,6 @@ export default class AssetStorage extends Construct {
         queryStringBehavior: OriginRequestQueryStringBehavior.all(),
       }),
       trustedKeyGroups: [keyGroup],
-    });
+    };
   }
 }

@@ -23,7 +23,7 @@ import DefaultNodejsFunction from './lambda/DefaultNodejsFunction';
 import { ApiProps } from './interfaces/ApiProps';
 
 export default class Api extends Construct {
-  public additionalBehaviors = new Map<string, BehaviorOptions>();
+  public additionalBehaviors:Record<string, BehaviorOptions> = {};
 
   public readonly table: Table;
 
@@ -90,7 +90,7 @@ export default class Api extends Construct {
       enabled: true,
     }));
 
-    this.additionalBehaviors.set('/api/*', {
+    this.additionalBehaviors['/api/*'] = {
       origin: new HttpOrigin(Fn.select(2, Fn.split('/', api.apiEndpoint))),
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: AllowedMethods.ALLOW_ALL,
@@ -105,9 +105,9 @@ export default class Api extends Construct {
         queryStringBehavior: OriginRequestQueryStringBehavior.all(),
         cookieBehavior: OriginRequestCookieBehavior.none(),
       }),
-    });
+    };
 
-    this.additionalBehaviors.set('/d/*', {
+    this.additionalBehaviors['/d/*'] = {
       origin: new HttpOrigin(Fn.select(2, Fn.split('/', api.apiEndpoint)), {
         originPath: '/api',
       }),
@@ -117,7 +117,7 @@ export default class Api extends Construct {
         defaultTtl: Duration.seconds(60),
         minTtl: Duration.seconds(60),
       }),
-    });
+    };
 
     // Routes
 
