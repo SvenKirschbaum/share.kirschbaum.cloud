@@ -14,7 +14,11 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront';
 import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
-import { AssetStorageProps } from './interfaces/AssetStorageProps';
+
+interface AssetStorageProps {
+    privateKeySecretName: string;
+    publicKeySecretName: string;
+}
 
 export default class AssetStorage extends Construct {
   public additionalBehaviors:Record<string, BehaviorOptions> = {};

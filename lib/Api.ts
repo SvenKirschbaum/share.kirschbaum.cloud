@@ -19,8 +19,18 @@ import {
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { Construct } from 'constructs';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 import DefaultNodejsFunction from './lambda/DefaultNodejsFunction';
-import { ApiProps } from './interfaces/ApiProps';
+
+interface ApiProps {
+    jwtIssuerUrl: string,
+    jwtAudience: string,
+    domain: string,
+    fileBucket: Bucket,
+    fileShareKeyId: string,
+    fileShareKeySecret: ISecret
+}
 
 export default class Api extends Construct {
   public additionalBehaviors:Record<string, BehaviorOptions> = {};

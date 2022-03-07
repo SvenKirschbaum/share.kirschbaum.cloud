@@ -14,7 +14,17 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CrossAccountZoneDelegationRecord } from 'aws-cdk-lib/aws-route53';
-import { GeneralProps } from './interfaces/GeneralProps';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import SESConfiguration from './util/SESConfiguration';
+import { DelegationOptions } from './interfaces/DelegationOptions';
+
+interface GeneralProps {
+    domain: string;
+    delegation?: DelegationOptions
+    logBucket: Bucket;
+    defaultBehavior: BehaviorOptions;
+    additionalBehaviors: Record<string, BehaviorOptions>;
+}
 
 export default class General extends Construct {
   private delegationRecord?: CrossAccountZoneDelegationRecord;

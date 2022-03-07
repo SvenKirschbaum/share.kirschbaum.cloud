@@ -5,7 +5,12 @@ import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { BehaviorOptions, CachePolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { Construct } from 'constructs';
-import { FrontendProps } from './interfaces/FrontendProps';
+
+interface FrontendProps {
+    keycloakUrl: string;
+    keycloakRealm: string;
+    frontendClientId: string;
+}
 
 export default class Frontend extends Construct {
   public defaultBehavior: BehaviorOptions;

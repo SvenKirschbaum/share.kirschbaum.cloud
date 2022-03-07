@@ -5,8 +5,12 @@ import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import { JsonPath } from 'aws-cdk-lib/aws-stepfunctions';
 import { Construct } from 'constructs';
-import { AnalyticsProps } from './interfaces/AnalyticsProps';
+import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import DefaultNodejsFunction from './lambda/DefaultNodejsFunction';
+
+interface AnalyticsProps {
+    table: Table
+}
 
 export default class Analytics extends Construct {
   public readonly logFileBucket: Bucket;
