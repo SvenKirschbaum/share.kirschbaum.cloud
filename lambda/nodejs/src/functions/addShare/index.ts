@@ -11,7 +11,8 @@ import {uploadService} from "../../services/UploadService";
 const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
 
 export const handler = async function addShareHandler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
-    const roles = event.requestContext.authorizer?.jwt.claims.roles as string[] | undefined;
+    const claims = event.requestContext.authorizer.jwt.claims;
+    const roles = claims.roles as string[] | undefined;
 
     if(!roles?.includes('member')) {
         return {
@@ -54,6 +55,29 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
             itemContent.link = {
                 S: requestDto.link
             };
+        }
+        else if (requestDto.type === 'FILE_REQUEST') {
+            if(requestDto.notifyOnUpload) {
+                if(!claims.email || !claims.email_verified) {
+                    return {
+                        statusCode: 400,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: 'Your need a verified email address to receive notifications.'
+                        })
+                    };
+                }
+
+                itemContent.notifications = {
+                    L: [
+                        {
+                            S: claims.email as string
+                        }
+                    ]
+                }
+            }
         }
 
         const expirationDate = moment(requestDto.expires);

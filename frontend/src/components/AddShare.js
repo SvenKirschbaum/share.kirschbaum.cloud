@@ -3,14 +3,14 @@ import {
     Card,
     CardActions,
     CardContent,
-    CardHeader,
+    CardHeader, Checkbox,
     CircularProgress,
     Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
     DialogTitle, Divider,
-    Fab,
+    Fab, FormControlLabel,
     FormGroup,
     Input,
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, Paper,
@@ -195,24 +195,32 @@ function AddFile() {
 }
 
 function AddRequest() {
+
+    const {keycloak} = useKeycloak();
+    
+    const [shouldNotify, setShouldNotify] = useState(false);
+
+    const canBeNotified = keycloak.tokenParsed.email && keycloak.tokenParsed.email_verified;
+
     return (
         <BaseAddDialog
             title={"Add Request"}
             ignoreClipboard={true}
             getRequestData={() => ({
-                type: 'FILE_REQUEST'
+                type: 'FILE_REQUEST',
+                notifyOnUpload: shouldNotify
             })}
             successMessage={
                 (props) =>
                     <React.Fragment>
                         You can forward the following link to request a fileupload: <a href={requestURLPrefix + props.addedId}>{requestURLPrefix + props.addedId}</a>
                     </React.Fragment>
-
             }
             onResponse={async (res) => {
                 navigator.clipboard.writeText(requestURLPrefix + res.data.shareId).then();
             }}
         >
+            <FormControlLabel disabled={!canBeNotified} checked={shouldNotify} onChange={() => setShouldNotify(!shouldNotify)} control={<Checkbox />} label={"Notify me once the request has been completed"} />
             <Divider sx={{
                 my: 2
             }}/>

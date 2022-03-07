@@ -21,6 +21,7 @@ import {
 import { Construct } from 'constructs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import DefaultNodejsFunction from './lambda/DefaultNodejsFunction';
 
 interface ApiProps {
@@ -153,6 +154,11 @@ export default class Api extends Construct {
     });
     this.table.grantReadWriteData(completeUploadFunction);
     props.fileBucket.grantPut(completeUploadFunction);
+    completeUploadFunction.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ses:SendBulkEmail', 'ses:SendBulkTemplatedEmail'],
+      resources: ['*'],
+      effect: iam.Effect.ALLOW,
+    }));
 
     const completeUploadIntegration = new HttpLambdaIntegration('completeUploadIntegration', completeUploadFunction);
 

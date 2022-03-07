@@ -1,0 +1,5 @@
+{
+  "templateName": "REQUEST_FULFILLED_NOTIFICATION",
+  "subjectPart": "[File Request Fulfilled] {{SHARE_TITLE}}",
+  "textPart": "Dear User,\n\nthe file request with the title \"{{SHARE_TITLE}}\" has been fulfilled.\nYou can download the file via the following link: {{SHARE_URL}}\n\nThe file will be available until {{SHARE_EXPIRATION}}."
+}

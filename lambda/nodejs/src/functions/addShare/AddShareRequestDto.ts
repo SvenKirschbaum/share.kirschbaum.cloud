@@ -1,4 +1,14 @@
-import {IsDateString, IsIn, IsNotEmpty, IsNumber, IsPositive, IsString, IsUrl, ValidateIf} from "class-validator";
+import {
+    IsBoolean,
+    IsDateString,
+    IsIn,
+    IsNotEmpty,
+    IsNumber,
+    IsPositive,
+    IsString,
+    IsUrl,
+    ValidateIf
+} from "class-validator";
 
 export class AddShareRequestDto {
     @IsString()
@@ -33,4 +43,8 @@ export class AddShareRequestDto {
     @IsString()
     @IsNotEmpty()
     fileType: string;
+
+    @ValidateIf(object => object.type === 'FILE_REQUEST')
+    @IsBoolean()
+    notifyOnUpload: boolean = false;
 }

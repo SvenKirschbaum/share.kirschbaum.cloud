@@ -1,6 +1,9 @@
 import { Construct } from 'constructs';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import { DnsValidatedDomainIdentity } from 'aws-cdk-ses-domain-identity';
+import { CfnTemplate } from 'aws-cdk-lib/aws-ses';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface SESConfigurationProps {
     domain: string,
@@ -16,5 +19,14 @@ export default class SESConfiguration extends Construct {
       dkim: true,
       hostedZone: props.zone,
     });
+
+    // Create Template for all files in the folder
+    fs.readdirSync(path.resolve(__dirname, '..', 'templates', 'ses'))
+      .map((fileName) => fs.readFileSync(path.resolve(__dirname, '..', 'templates', 'ses', fileName)))
+      .map((buffer) => buffer.toString())
+      .map((fileContent) => JSON.parse(fileContent))
+      .map((template) => new CfnTemplate(this, `${template.templateName}Template`, {
+        template,
+      }));
   }
 }

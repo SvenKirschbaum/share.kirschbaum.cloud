@@ -1,10 +1,13 @@
-import {APIGatewayProxyEventV2, APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
+import {APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
 import {DynamoDBClient, GetItemCommand, PutItemCommand} from "@aws-sdk/client-dynamodb";
 import {uploadService} from "../../services/UploadService";
 import {transformAndValidateSync} from "class-transformer-validator";
 import {CompleteUploadDto} from "./CompleteUploadDto";
+import {SendBulkEmailCommand, SESv2Client} from "@aws-sdk/client-sesv2";
+import moment = require("moment");
 
 const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
+const ses = new SESv2Client({region: process.env.AWS_REGION});
 
 export const handler = async function completeUpload(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
     const id = event.pathParameters?.id;
@@ -71,6 +74,7 @@ export const handler = async function completeUpload(event: APIGatewayProxyEvent
 
             const updatedShare = Object.assign({}, share);
             delete updatedShare.uploadId;
+            delete updatedShare.notifications;
             updatedShare.type.S = 'FILE'
 
             const putItemCommand = new PutItemCommand({
@@ -80,6 +84,31 @@ export const handler = async function completeUpload(event: APIGatewayProxyEvent
 
             await ddb.send(putItemCommand);
 
+            if(share.notifications?.L) {
+                try {
+                    await ses.send(new SendBulkEmailCommand({
+                        FromEmailAddress: "no-reply@" + process.env.DOMAIN,
+                        BulkEmailEntries: share.notifications.L.map(email => ({
+                            Destination: {
+                                ToAddresses: [email.S as string]
+                            }
+                        })),
+                        DefaultContent: {
+                            Template: {
+                                TemplateName: 'REQUEST_FULFILLED_NOTIFICATION',
+                                TemplateData: JSON.stringify({
+                                    'SHARE_TITLE': share.title.S,
+                                    'SHARE_URL': `https://${process.env.DOMAIN}/d/${id}`,
+                                    'SHARE_EXPIRATION': moment.unix(Number(share.expire.N)).format("dddd, MMMM Do YYYY, HH:mm:ss")
+                                })
+                            },
+                        }
+                    }))
+                }
+                catch (e) {
+                    console.error(`Sending of Email notification failed for share ${id}`,e);
+                }
+            }
 
             return {
                 statusCode: 201
