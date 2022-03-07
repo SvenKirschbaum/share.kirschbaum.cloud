@@ -29,6 +29,7 @@
     "@aws-cdk/aws-apigatewayv2-authorizers-alpha": "^2.15.0-alpha.0",
     "@aws-cdk/aws-apigatewayv2-integrations-alpha": "^2.15.0-alpha.0",
     "aws-cdk-lib": "^2.15.0",
+    "aws-cdk-ses-domain-identity": "^2.0.0",
     "aws-sdk": "^2.1087.0",
     "cdk-dia": "^0.6.1",
     "constructs": "^10.0.78",

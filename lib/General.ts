@@ -59,6 +59,11 @@ export default class General extends Construct {
       region: 'us-east-1',
     });
 
+    new SESConfiguration(this, 'SESConfiguration', {
+      domain: props.domain,
+      zone,
+    });
+
     const responseHeaderPolicy = new ResponseHeadersPolicy(this, 'ResponseHeaderPolicy', {
       securityHeadersBehavior: {
         strictTransportSecurity: {
