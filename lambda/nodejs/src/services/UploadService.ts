@@ -21,7 +21,7 @@ class UploadService {
 
         const createMultipartUploadCommand = new CreateMultipartUploadCommand({
             Bucket: process.env.FILE_BUCKET as string,
-            Key: 'a/' + fileId,
+            Key: fileId,
             ContentType: contentType
         });
 
@@ -32,7 +32,7 @@ class UploadService {
             .map(partNumber => {
                 const uploadPartCommand = new UploadPartCommand({
                     Bucket: process.env.FILE_BUCKET,
-                    Key: 'a/' + fileId,
+                    Key: fileId,
                     PartNumber: partNumber + 1,
                     UploadId: createUploadResponse.UploadId
                 });
@@ -50,7 +50,7 @@ class UploadService {
     public async finishUpload(uploadId: string, fileId: string, parts: CompletedPart[]): Promise<void> {
         const completeMultipartUploadCommand = new CompleteMultipartUploadCommand({
             Bucket: process.env.FILE_BUCKET,
-            Key: 'a/' + fileId,
+            Key: fileId,
             UploadId: uploadId,
             MultipartUpload: {
                 Parts: parts

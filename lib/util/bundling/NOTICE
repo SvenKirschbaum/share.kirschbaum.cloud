@@ -1,0 +1,3 @@
+This directory contains a copy of some files from the aws-cdk-lib/aws-lambda-nodejs, which are not exported.
+This allows to use same bundling mechanism as the NodeJSFunction Construct for EdgeFunctions.
+There are existing FeatureRequests to make this less painful, which will allow to refactor this in the future.

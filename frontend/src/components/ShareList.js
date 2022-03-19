@@ -21,6 +21,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import RequestFileIcon from "../icons/RequestFileIcon";
+import {useConfig} from "../util/config";
 
 function ShareEntry(props) {
     const targetURL = window.location.protocol + '//' + window.location.host + (props.type === 'FILE_REQUEST' ? '/r/' : '/d/') + props.id;
@@ -66,13 +67,14 @@ function ShareEntry(props) {
 }
 
 function ShareList() {
+    const apiUrl = useConfig('API_URL');
     const {keycloak} = useKeycloak();
 
     const [loading, setLoading] = useState(true);
     const [shares, setShares] = useState([]);
 
     useEffect(() => {
-        axios.get('/api/list', {
+        axios.get(`${apiUrl}/list`, {
             headers: {
                 Authorization: keycloak.token
             },
@@ -85,7 +87,7 @@ function ShareList() {
 
     const deleteShare = (id) => {
         setShares(shares.filter(value => value.id !== id));
-        axios.delete('/api/share/'+id, {
+        axios.delete(`${apiUrl}/share/${id}`, {
             headers: {
                 Authorization: keycloak.token
             }

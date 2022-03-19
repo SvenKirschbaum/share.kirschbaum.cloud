@@ -25,13 +25,14 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import moment from "moment";
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
-import {uploadService} from "../services/UploadService";
 import {useLocation} from "react-router";
 import {DateTimePicker} from "@mui/lab";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import UploadProgressDialog from "./dialogs/UploadProgressDialog";
 import NotFound from "./NotFound";
+import {useConfig} from "../util/config";
+import {useUpload} from "../util/upload";
 
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 const forwardURLPrefix = window.location.protocol + '//' + window.location.host + '/d/';
@@ -146,8 +147,7 @@ function AddFile() {
     const [suggestedTitle, setSuggestedTitle] = useState(undefined);
 
     const [showUpload, setShowUpload] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
-    const [uploadSpeedBPS, setUploadSpeedBPS] = useState(0);
+    const [uploadState, startUpload] = useUpload();
 
     //Set file from location state
     useEffect(() => {
@@ -174,7 +174,7 @@ function AddFile() {
                 })}
                 onResponse={(res) => {
                     setShowUpload(true);
-                    return uploadService.uploadFile(res.data.shareId, fileInput.current.files[0], res.data.uploadUrls, setUploadProgress, setUploadSpeedBPS)
+                    return startUpload(res.data.shareId, fileInput.current.files[0], res.data.uploadUrls)
                         .finally(() => {
                             setShowUpload(false);
                         })
@@ -187,8 +187,8 @@ function AddFile() {
             </BaseAddDialog>
             <UploadProgressDialog
                 open={showUpload}
-                uploadProgress={uploadProgress}
-                uploadSpeedBPS={uploadSpeedBPS}
+                uploadProgress={uploadState.progress}
+                uploadSpeedBPS={uploadState.speed}
             />
         </React.Fragment>
     );
@@ -235,6 +235,7 @@ function AddRequest() {
 function BaseAddDialog(props) {
     const {keycloak} = useKeycloak();
     const history = useHistory();
+    const apiUrl = useConfig('API_URL');
 
     const [title, setTitle] = useState('');
     const [expire, setExpire] = useState(moment().add(7, 'days'));
@@ -260,7 +261,7 @@ function BaseAddDialog(props) {
 
         setLoading(true);
 
-        axios.post('/api/add', {
+        axios.post(`${apiUrl}/add`, {
                 title,
                 expires: expire.toISOString(),
                 ...props.getRequestData()

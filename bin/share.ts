@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import ShareStack from '../lib/ShareStack';
+import ShareStage from '../lib/ShareStage';
 
 const app = new cdk.App();
-new ShareStack(app, 'ShareStack', {
+new ShareStage(app, 'Prod', {
   domain: 'share.kirschbaum.cloud',
   delegation: {
     parentDomain: 'kirschbaum.cloud',
@@ -15,8 +15,7 @@ new ShareStack(app, 'ShareStack', {
   keycloakRealm: 'elite12',
   frontendClientId: 'cloud-share-frontend',
   backendClientId: 'cloud-share-backend',
-  publicKeySecretName: 'share/cloudfront/public',
-  privateKeySecretName: 'share/cloudfront/private',
+  statePrefix: 'Prod',
   env: {
     account: '743848950232',
     region: 'eu-central-1',

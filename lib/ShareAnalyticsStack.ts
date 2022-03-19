@@ -1,24 +1,34 @@
-import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
-import { Duration } from 'aws-cdk-lib';
-import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
-import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
-import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
-import { JsonPath } from 'aws-cdk-lib/aws-stepfunctions';
+import {
+  Duration, RemovalPolicy, Stack, StackProps,
+} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import { JsonPath } from 'aws-cdk-lib/aws-stepfunctions';
+import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
-import DefaultNodejsFunction from './lambda/DefaultNodejsFunction';
+import DefaultNodejsFunction from './util/DefaultNodejsFunction';
 
-interface AnalyticsProps {
+export interface ShareAnalyticsStackProps extends StackProps {
     table: Table
 }
 
-export default class Analytics extends Construct {
-  public readonly logFileBucket: Bucket;
+export default class ShareAnalyticsStack extends Stack {
+  private stateMachine: sfn.StateMachine;
 
-  constructor(scope: Construct, id: string, props: AnalyticsProps) {
-    super(scope, id);
+  logBucket: Bucket;
 
-    this.logFileBucket = new Bucket(this, 'LogBucket', {
+  constructor(scope: Construct, id: string, props: ShareAnalyticsStackProps) {
+    super(scope, id, props);
+
+    this.createLogBucket();
+    this.createStateMachine(props.table);
+    this.createSubmitResources();
+  }
+
+  private createLogBucket() {
+    this.logBucket = new Bucket(this, 'LogBucket', {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       encryption: BucketEncryption.S3_MANAGED,
       lifecycleRules: [
@@ -26,12 +36,16 @@ export default class Analytics extends Construct {
           expiration: Duration.days(3),
         },
       ],
+      autoDeleteObjects: true,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
+  }
 
+  private createStateMachine(table: Table) {
     const parseLogFunction = new DefaultNodejsFunction(this, 'parseLogFunction', {
       entry: 'lambda/nodejs/src/functions/analytics/parseLog/index.ts',
     });
-    this.logFileBucket.grantRead(parseLogFunction);
+    this.logBucket.grantRead(parseLogFunction);
 
     const parseLogStep = new tasks.LambdaInvoke(this, 'parseLogStep', {
       lambdaFunction: parseLogFunction,
@@ -55,7 +69,7 @@ export default class Analytics extends Construct {
     };
 
     const updateClickData = new tasks.DynamoUpdateItem(this, 'updateClickStats', {
-      table: props.table,
+      table,
       key: {
         PK: ddbKey,
         SK: ddbKey,
@@ -93,18 +107,20 @@ export default class Analytics extends Construct {
           .next(successState),
       );
 
-    const stateMachine = new sfn.StateMachine(this, 'LogParsingStateMachine', {
+    this.stateMachine = new sfn.StateMachine(this, 'LogParsingStateMachine', {
       definition,
     });
+  }
 
+  private createSubmitResources() {
     const submitLogAnalysisFunction = new DefaultNodejsFunction(this, 'SubmitLogAnalysisFunction', {
       entry: 'lambda/nodejs/src/functions/analytics/submitLogAnalysis/index.ts',
       environment: {
-        LOG_PARSING_STATE_MACHINE: stateMachine.stateMachineArn,
+        LOG_PARSING_STATE_MACHINE: this.stateMachine.stateMachineArn,
       },
     });
-    stateMachine.grantStartExecution(submitLogAnalysisFunction);
-    this.logFileBucket.addObjectCreatedNotification(
+    this.stateMachine.grantStartExecution(submitLogAnalysisFunction);
+    this.logBucket.addObjectCreatedNotification(
       new LambdaDestination(submitLogAnalysisFunction),
     );
   }

@@ -18,7 +18,7 @@ export const handler: DynamoDBStreamHandler = async function onShareDeletion(eve
                     if(entry?.file) {
                         const deleteItemCommand = new DeleteObjectCommand({
                             Bucket: process.env.FILE_BUCKET,
-                            Key: 'a/' +entry?.file.S
+                            Key: entry?.file.S
                         });
 
                         await s3.send(deleteItemCommand);

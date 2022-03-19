@@ -13,12 +13,14 @@ import {
 import React, {useEffect, useRef, useState} from "react";
 import axios from "axios";
 import {useParams} from "react-router";
-import {uploadService} from "../services/UploadService";
 import UploadProgressDialog from "./dialogs/UploadProgressDialog";
+import {useConfig} from "../util/config";
+import {useUpload} from "../util/upload";
 
 
 function RequestShare() {
     const {id} = useParams();
+    const apiUrl = useConfig('API_URL');
 
     const [loading, setLoading] = useState(true);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -27,14 +29,13 @@ function RequestShare() {
     const [title, setTitle] = useState(undefined);
 
     const [showUpload, setShowUpload] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
-    const [uploadSpeedBPS, setUploadSpeedBPS] = useState(0);
+    const [uploadState, startUpload] = useUpload(true);
 
 
     const fileInput = useRef();
 
     useEffect(() => {
-        axios.get(`/api/public/request/${id}`)
+        axios.get(`${apiUrl}/public/request/${id}`)
             .then(res => {
                 setTitle(res.data.title)
             })
@@ -53,7 +54,7 @@ function RequestShare() {
 
         setLoading(true);
 
-        axios.post(`/api/public/request/${id}`, {
+        axios.post(`${apiUrl}/public/request/${id}`, {
                 fileName: file.name,
                 fileSize: file.size,
                 fileType: (file.type || 'application/octet-stream')
@@ -61,7 +62,7 @@ function RequestShare() {
         )
         .then(res => {
             setShowUpload(true);
-            return uploadService.uploadFile(id, file, res.data.uploadUrls, setUploadProgress, setUploadSpeedBPS, true);
+            return startUpload(id, file, res.data.uploadUrls);
         })
         .then(() => {
             setShowSuccess(true)
@@ -108,8 +109,8 @@ function RequestShare() {
             </Card>
             <UploadProgressDialog
                 open={showUpload}
-                uploadProgress={uploadProgress}
-                uploadSpeedBPS={uploadSpeedBPS}
+                uploadProgress={uploadState.progress}
+                uploadSpeedBPS={uploadState.speed}
             />
         </React.Fragment>
     );
