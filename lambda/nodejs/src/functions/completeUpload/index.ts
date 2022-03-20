@@ -84,10 +84,10 @@ export const handler = async function completeUpload(event: APIGatewayProxyEvent
 
             await ddb.send(putItemCommand);
 
-            if(share.notifications?.L) {
+            if(share.notifications?.L && process.env.EMAIL_DOMAIN) {
                 try {
                     await ses.send(new SendBulkEmailCommand({
-                        FromEmailAddress: "no-reply@" + process.env.DOMAIN,
+                        FromEmailAddress: "no-reply@" + process.env.EMAIL_DOMAIN,
                         BulkEmailEntries: share.notifications.L.map(email => ({
                             Destination: {
                                 ToAddresses: [email.S as string]
@@ -98,7 +98,7 @@ export const handler = async function completeUpload(event: APIGatewayProxyEvent
                                 TemplateName: 'REQUEST_FULFILLED_NOTIFICATION',
                                 TemplateData: JSON.stringify({
                                     'SHARE_TITLE': share.title.S,
-                                    'SHARE_URL': `https://${process.env.DOMAIN}/d/${id}`,
+                                    'SHARE_URL': `https://${process.env.EMAIL_DOMAIN}/d/${id}`,
                                     'SHARE_EXPIRATION': moment.unix(Number(share.expire.N)).format("dddd, MMMM Do YYYY, HH:mm:ss")
                                 })
                             },

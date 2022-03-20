@@ -1,4 +1,5 @@
 import {
+  CfnOutput,
   Duration, Fn, Stack, StackProps,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -19,18 +20,18 @@ import {
   AllowedMethods,
   CacheHeaderBehavior,
   CachePolicy,
-  Distribution, OriginRequestPolicy,
+  Distribution,
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import DefaultNodejsFunction from './util/DefaultNodejsFunction';
 
 export interface ShareApiStackProps extends StackProps {
-    apiDomain: string,
-    frontendDomain: string,
+    apiDomain?: string,
+    emailDomain?: string,
     jwtIssuerUrl: string,
     jwtAudience: string,
-    zone: HostedZone,
+    zone?: HostedZone,
     table: Table,
     storageBucket: Bucket
 }
@@ -40,11 +41,13 @@ export default class ShareApiStack extends Stack {
 
   private authorizer: HttpJwtAuthorizer;
 
+  public distribution: Distribution;
+
   constructor(scope: Construct, id: string, props: ShareApiStackProps) {
     super(scope, id, props);
     this.createApi(props.jwtIssuerUrl, props.jwtAudience);
     this.createCustomDomain(props.apiDomain, props.zone);
-    this.createApiRoutes(props.table, props.storageBucket, props.frontendDomain);
+    this.createApiRoutes(props.table, props.storageBucket, props.emailDomain);
   }
 
   private createApi(jwtIssuerUrl: string, jwtAudience: string) {
@@ -72,16 +75,19 @@ export default class ShareApiStack extends Stack {
     });
   }
 
-  private createCustomDomain(domain: string, zone: HostedZone) {
-    const certificate = new acm.DnsValidatedCertificate(this, 'DistributionCertificate', {
-      domainName: domain,
-      hostedZone: zone,
-      region: 'us-east-1',
-    });
+  private createCustomDomain(domain?: string, zone?: HostedZone) {
+    let certificate;
+    if (domain && zone) {
+      certificate = new acm.DnsValidatedCertificate(this, 'DistributionCertificate', {
+        domainName: domain,
+        hostedZone: zone,
+        region: 'us-east-1',
+      });
+    }
 
-    const distribution = new Distribution(this, 'Distribution', {
+    this.distribution = new Distribution(this, 'Distribution', {
       certificate,
-      domainNames: [domain],
+      domainNames: domain ? [domain] : undefined,
       defaultBehavior: {
         origin: new HttpOrigin(Fn.select(2, Fn.split('/', this.api.apiEndpoint))),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -95,25 +101,35 @@ export default class ShareApiStack extends Stack {
       },
     });
 
-    new ARecord(this, 'ARecord', {
-      zone,
-      recordName: domain,
-      target: RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
-    });
+    if (domain && zone) {
+      new ARecord(this, 'ARecord', {
+        zone,
+        recordName: domain,
+        target: RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
+      });
 
-    new AaaaRecord(this, 'AAAARecord', {
-      zone,
-      recordName: domain,
-      target: RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
+      new AaaaRecord(this, 'AAAARecord', {
+        zone,
+        recordName: domain,
+        target: RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
+      });
+    }
+
+    new CfnOutput(this, 'ApiDomain', {
+      exportName: 'ApiDomain',
+      value: domain ?? this.distribution.distributionDomainName,
     });
   }
 
-  private createApiRoutes(table: Table, storageBucket: Bucket, frontendDomain: string) {
-    const defaultLambdaEnvironment = {
+  private createApiRoutes(table: Table, storageBucket: Bucket, emailDomain?: string) {
+    const defaultLambdaEnvironment: {[p: string]: string} = {
       TABLE_NAME: table.tableName,
       FILE_BUCKET: storageBucket.bucketName,
-      DOMAIN: frontendDomain,
     };
+
+    if (emailDomain) {
+      defaultLambdaEnvironment.EMAIL_DOMAIN = emailDomain;
+    }
 
     const addShareFunction = new DefaultNodejsFunction(this, 'AddShare', {
       entry: 'lambda/nodejs/src/functions/addShare/index.ts',

@@ -1,4 +1,5 @@
 import {
+  CfnOutput,
   Duration, RemovalPolicy, Stack, StackProps,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -26,12 +27,13 @@ import DefaultResponseHeadersPolicy from './util/DefaultResponseHeadersPolicy';
 import { Bundling } from './util/bundling/Bundling';
 
 export interface ShareFrontendStackProps extends StackProps {
-    frontendDomain: string,
+    frontendDomain?: string,
     apiDomain: string,
     keycloakUrl: string;
     keycloakRealm: string;
     keycloakClientId: string;
-    zone: HostedZone,
+    disableEmail: boolean;
+    zone?: HostedZone,
     logBucket: Bucket,
     storageBucket: Bucket,
     table: Table
@@ -51,15 +53,16 @@ export default class ShareFrontendStack extends Stack {
       props.keycloakUrl,
       props.keycloakRealm,
       props.keycloakClientId,
+      props.disableEmail,
     );
-    this.createDistribution(props.frontendDomain, props.zone, props.logBucket);
+    this.createDistribution(props.logBucket, props.frontendDomain, props.zone);
     this.createAssetAccessResources(
       props.storageBucket,
       props.table,
     );
   }
 
-  private createBucket(apiDomain: string, keycloakUrl: string, keycloakRealm: string, keycloakClientId: string) {
+  private createBucket(apiDomain: string, keycloakUrl: string, keycloakRealm: string, keycloakClientId: string, disableEmail: boolean) {
     this.frontendBucket = new Bucket(this, 'Bucket', {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       removalPolicy: RemovalPolicy.DESTROY,
@@ -75,6 +78,7 @@ export default class ShareFrontendStack extends Stack {
         }),
         Source.jsonData('config.json', {
           API_URL: `https://${apiDomain}`,
+          EMAIL_DISABLED: disableEmail,
           KEYCLOAK: {
             url: keycloakUrl,
             realm: keycloakRealm,
@@ -85,13 +89,16 @@ export default class ShareFrontendStack extends Stack {
     });
   }
 
-  private createDistribution(domain: string, zone: HostedZone, logBucket: Bucket) {
-    const certificate = new acm.DnsValidatedCertificate(this, 'Certificate', {
-      domainName: domain,
-      hostedZone: zone,
-      // Required for use with Cloudfront
-      region: 'us-east-1',
-    });
+  private createDistribution(logBucket: Bucket, domain?: string, zone?: HostedZone) {
+    let certificate;
+    if (domain && zone) {
+      certificate = new acm.DnsValidatedCertificate(this, 'Certificate', {
+        domainName: domain,
+        hostedZone: zone,
+        // Required for use with Cloudfront
+        region: 'us-east-1',
+      });
+    }
 
     // This is required, as the automatically created OAI will not include List permissions,
     // causing requests to non existing objects to return 403 instead of 404
@@ -111,7 +118,7 @@ export default class ShareFrontendStack extends Stack {
 
     this.distribution = new Distribution(this, 'Distribution', {
       certificate,
-      domainNames: [domain],
+      domainNames: domain ? [domain] : undefined,
       defaultRootObject: 'index.html',
 
       errorResponses: [
@@ -151,14 +158,21 @@ export default class ShareFrontendStack extends Stack {
       enableLogging: true,
     });
 
-    new route53.ARecord(this, 'DistributionARecord', {
-      zone,
-      target: route53.RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
-    });
+    if (domain && zone) {
+      new route53.ARecord(this, 'DistributionARecord', {
+        zone,
+        target: route53.RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
+      });
 
-    new route53.AaaaRecord(this, 'DistributionAAAARecord', {
-      zone,
-      target: route53.RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
+      new route53.AaaaRecord(this, 'DistributionAAAARecord', {
+        zone,
+        target: route53.RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
+      });
+    }
+
+    new CfnOutput(this, 'FrontendDomain', {
+      exportName: 'FrontendDomain',
+      value: domain ?? this.distribution.distributionDomainName,
     });
   }
 

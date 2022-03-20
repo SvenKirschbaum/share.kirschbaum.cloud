@@ -30,6 +30,18 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
             }
         }) as AddShareRequestDto;
 
+        if(requestDto.notifyOnUpload && !process.env.EMAIL_DOMAIN) {
+            return {
+                statusCode: 400,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "message": 'Email functionality is disabled'
+                })
+            };
+        }
+
         const itemContent: { [p: string]: AttributeValue } = {};
         const responseContent: { [p: string]: any} = {};
 

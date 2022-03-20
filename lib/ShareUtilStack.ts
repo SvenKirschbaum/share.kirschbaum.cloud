@@ -18,56 +18,63 @@ import DefaultNodejsFunction from './util/DefaultNodejsFunction';
 import { DelegationOptions } from './interfaces/DelegationOptions';
 
 export interface ShareUtilStackProps extends StackProps {
-    domain: string;
+    domain?: string;
     delegation?: DelegationOptions;
+    disableEmail: boolean;
     table: Table;
     storageBucket: Bucket
 }
 
 export default class ShareUtilStack extends Stack {
-  public zone: HostedZone;
+  public zone?: HostedZone;
 
   constructor(scope: Construct, id: string, props: ShareUtilStackProps) {
     super(scope, id, props);
 
     this.createDnsResources(props.domain, props.delegation);
-    this.createEmailResources(props.domain);
+    if (!props.disableEmail) this.createEmailResources(props.domain);
     this.createFileDeletionResources(props.table, props.storageBucket);
   }
 
-  private createDnsResources(domain: string, delegationOptions?: DelegationOptions) {
-    this.zone = new route53.PublicHostedZone(this, 'HostedZone', {
-      zoneName: domain,
-    });
+  private createDnsResources(domain?: string, delegationOptions?: DelegationOptions) {
+    if (!domain && delegationOptions) throw new Error('Specifing a delegation without a domain is not possible');
 
-    // Create delegation automatically if specified
-    if (delegationOptions) {
-      // create the delegation record
-      new route53.CrossAccountZoneDelegationRecord(this, 'DelegationRecord', {
-        delegatedZone: this.zone,
-        parentHostedZoneName: delegationOptions.parentDomain,
-        delegationRole: iam.Role.fromRoleArn(this, 'DelegationRole', Stack.of(this).formatArn({
-          region: '', // IAM is global in each partition
-          service: 'iam',
-          account: delegationOptions.accountId,
-          resource: 'role',
-          resourceName: delegationOptions.roleName,
-        })),
+    if (domain) {
+      this.zone = new route53.PublicHostedZone(this, 'HostedZone', {
+        zoneName: domain,
+      });
+
+      // Create delegation automatically if specified
+      if (delegationOptions) {
+        // create the delegation record
+        new route53.CrossAccountZoneDelegationRecord(this, 'DelegationRecord', {
+          delegatedZone: this.zone,
+          parentHostedZoneName: delegationOptions.parentDomain,
+          delegationRole: iam.Role.fromRoleArn(this, 'DelegationRole', Stack.of(this).formatArn({
+            region: '', // IAM is global in each partition
+            service: 'iam',
+            account: delegationOptions.accountId,
+            resource: 'role',
+            resourceName: delegationOptions.roleName,
+          })),
+        });
+      }
+
+      new CfnOutput(this, 'NameserverOutput', {
+        exportName: 'Nameservers',
+        value: Fn.join(' ', this.zone.hostedZoneNameServers as string[]),
       });
     }
-
-    new CfnOutput(this, 'NameserverOutput', {
-      exportName: 'Nameservers',
-      value: Fn.join(' ', this.zone.hostedZoneNameServers as string[]),
-    });
   }
 
-  private createEmailResources(domain: string) {
-    new DnsValidatedDomainIdentity(this, 'DomainIdentity', {
-      domainName: domain,
-      dkim: true,
-      hostedZone: this.zone,
-    });
+  private createEmailResources(domain?: string) {
+    if (this.zone && domain) {
+      new DnsValidatedDomainIdentity(this, 'DomainIdentity', {
+        domainName: domain,
+        dkim: true,
+        hostedZone: this.zone,
+      });
+    }
 
     // Create Template for all files in the folder
     fs.readdirSync(path.resolve(__dirname, 'templates', 'ses'))

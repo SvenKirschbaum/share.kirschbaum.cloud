@@ -11,10 +11,12 @@ new ShareStage(app, 'Prod', {
     accountId: '212836051001',
     roleName: 'CloudshareDNSDelegationRole',
   },
-  keycloakUrl: 'https://id.elite12.de/auth',
-  keycloakRealm: 'elite12',
-  frontendClientId: 'cloud-share-frontend',
-  backendClientId: 'cloud-share-backend',
+  keycloak: {
+    url: 'https://id.elite12.de/auth',
+    realm: 'elite12',
+    frontendClientId: 'cloud-share-frontend',
+    backendClientId: 'cloud-share-backend',
+  },
   statePrefix: 'Prod',
   env: {
     account: '743848950232',

@@ -197,10 +197,11 @@ function AddFile() {
 function AddRequest() {
 
     const {keycloak} = useKeycloak();
+    const emailDisabled = useConfig('EMAIL_DISABLED');
     
     const [shouldNotify, setShouldNotify] = useState(false);
 
-    const canBeNotified = keycloak.tokenParsed.email && keycloak.tokenParsed.email_verified;
+    const canBeNotified = keycloak.tokenParsed.email && keycloak.tokenParsed.email_verified && !emailDisabled;
 
     return (
         <BaseAddDialog
