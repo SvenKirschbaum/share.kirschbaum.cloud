@@ -94,16 +94,21 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
             };
         }
 
-        const id = getRandomId();
+        const title = requestDto.title;
+
+        const suffix = (title != '') ?
+            title + '/' + + getRandomId().substring(0, 2) :
+            getRandomId()
+        ;
 
         const putItemCommand = new PutItemCommand({
             TableName: process.env.TABLE_NAME,
             Item: {
                 'PK': {
-                    S: 'SHARE#'+ id
+                    S: 'SHARE#'+ suffix
                 },
                 'SK': {
-                    S: 'SHARE#'+ id
+                    S: 'SHARE#'+ suffix
                 },
                 'user': {
                     S: event.requestContext.authorizer?.jwt.claims.sub as string
@@ -149,7 +154,7 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                shareId: id,
+                shareId: suffix,
                 ...responseContent
             })
         };
