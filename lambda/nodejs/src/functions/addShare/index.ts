@@ -99,7 +99,7 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
             .replace(/\W/g, '');
 
         const suffix = (title != '') ?
-            title + '/' + + getRandomId().substring(0, 2) :
+            title + '/' + + getRandomId(2) :
             getRandomId()
         ;
 
