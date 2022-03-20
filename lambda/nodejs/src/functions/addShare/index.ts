@@ -94,7 +94,9 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
             };
         }
 
-        const title = requestDto.title;
+        const title = requestDto.title
+            .replace(' ', '')
+            .replace(/\W/g, '');
 
         const suffix = (title != '') ?
             title + '/' + + getRandomId().substring(0, 2) :
