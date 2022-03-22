@@ -46,7 +46,7 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
         const responseContent: { [p: string]: any} = {};
 
         if(requestDto.type === 'FILE') {
-            const uploadInfo = await uploadService.startUpload(Math.ceil(requestDto.fileSize/1024/1024/200), requestDto.fileType);
+            const uploadInfo = await uploadService.startUpload(Math.ceil(requestDto.file.fileSize/1024/1024/200), requestDto.file.fileType);
 
             Object.assign(itemContent, {
                 file: {
@@ -56,7 +56,7 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
                     S: uploadInfo.uploadId
                 },
                 fileName: {
-                    S: requestDto.fileName
+                    S: requestDto.file.fileName
                 }
             });
 

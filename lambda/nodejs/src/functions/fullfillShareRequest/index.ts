@@ -5,7 +5,7 @@ import {DynamoDBClient, GetItemCommand, PutItemCommand} from "@aws-sdk/client-dy
 import {transformAndValidateSync} from "class-transformer-validator";
 import moment = require("moment");
 import {uploadService} from "../../services/UploadService";
-import {FullfillShareRequestDto} from "./FullfillShareRequestDto";
+import FileInfo from "../../types/FileInfo";
 
 const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
 
@@ -63,14 +63,14 @@ export const handler = async function fullfillShareRequestHandler(event: APIGate
                 })
             };
         } else {
-            const requestDto = transformAndValidateSync(FullfillShareRequestDto, event.body as string, {
+            const requestDto = transformAndValidateSync(FileInfo, event.body as string, {
                 validator: {
                     validationError: {
                         target: false
                     },
                     forbidUnknownValues: true
                 }
-            }) as FullfillShareRequestDto;
+            }) as FileInfo;
 
             const uploadInfo = await uploadService.startUpload(Math.ceil(requestDto.fileSize/1024/1024/200), requestDto.fileType);
 

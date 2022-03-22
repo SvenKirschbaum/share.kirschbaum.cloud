@@ -1,6 +1,6 @@
-import {IsNotEmpty, IsNumber, IsPositive, IsString} from "class-validator";
+import {IsNotEmpty, IsNumber, IsPositive, IsString, ValidateIf} from "class-validator";
 
-export class FullfillShareRequestDto {
+export default class FileInfo {
     @IsString()
     @IsNotEmpty()
     fileName: string;

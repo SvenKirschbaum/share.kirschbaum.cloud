@@ -168,9 +168,11 @@ function AddFile() {
                 validate={() => fileInput.current.files[0]}
                 getRequestData={() => ({
                     type: 'FILE',
-                    fileName: fileInput.current.files[0].name,
-                    fileSize: fileInput.current.files[0].size,
-                    fileType: (fileInput.current.files[0].type || 'application/octet-stream')
+                    file: {
+                        fileName: fileInput.current.files[0].name,
+                        fileSize: fileInput.current.files[0].size,
+                        fileType: (fileInput.current.files[0].type || 'application/octet-stream')
+                    }
                 })}
                 onResponse={(res) => {
                     setShowUpload(true);

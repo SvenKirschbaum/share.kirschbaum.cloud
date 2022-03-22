@@ -9,6 +9,7 @@ import {
     IsUrl,
     ValidateIf
 } from "class-validator";
+import FileInfo from "../../types/FileInfo";
 
 export class AddShareRequestDto {
     @IsString()
@@ -30,19 +31,7 @@ export class AddShareRequestDto {
     link: string;
 
     @ValidateIf(object => object.type === 'FILE')
-    @IsString()
-    @IsNotEmpty()
-    fileName: string;
-
-    @ValidateIf(object => object.type === 'FILE')
-    @IsNumber()
-    @IsPositive()
-    fileSize: number;
-
-    @ValidateIf(object => object.type === 'FILE')
-    @IsString()
-    @IsNotEmpty()
-    fileType: string;
+    file: FileInfo
 
     @ValidateIf(object => object.type === 'FILE_REQUEST')
     @IsBoolean()
