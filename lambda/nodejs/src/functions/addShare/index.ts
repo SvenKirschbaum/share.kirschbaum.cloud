@@ -106,63 +106,72 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
             };
         }
 
-        const id = getRandomId();
+        let retry = 0;
 
-        const putItemCommand = new PutItemCommand({
-            TableName: process.env.TABLE_NAME,
-            Item: {
-                'PK': {
-                    S: 'SHARE#'+ id
+        while(retry < 3) {
+            retry++;
+            const id = getRandomId();
+            const putItemCommand = new PutItemCommand({
+                TableName: process.env.TABLE_NAME,
+                Item: {
+                    'PK': {
+                        S: 'SHARE#'+ id
+                    },
+                    'SK': {
+                        S: 'SHARE#'+ id
+                    },
+                    'user': {
+                        S: event.requestContext.authorizer?.jwt.claims.sub as string
+                    },
+                    'created': {
+                        N: moment().unix().toString()
+                    },
+                    'expire': {
+                        N: expirationDate.unix().toString()
+                    },
+                    'title': {
+                        S: requestDto.title
+                    },
+                    'type': {
+                        S: requestDto.type
+                    },
+                    'clicks': {
+                        M: {}
+                    },
+                    ...itemContent
                 },
-                'SK': {
-                    S: 'SHARE#'+ id
-                },
-                'user': {
-                    S: event.requestContext.authorizer?.jwt.claims.sub as string
-                },
-                'created': {
-                    N: moment().unix().toString()
-                },
-                'expire': {
-                    N: expirationDate.unix().toString()
-                },
-                'title': {
-                    S: requestDto.title
-                },
-                'type': {
-                    S: requestDto.type
-                },
-                'clicks': {
-                    M: {}
-                },
-                ...itemContent
-            },
-            ConditionExpression: 'attribute_not_exists(id)'
-        });
+                ConditionExpression: 'attribute_not_exists(id)'
+            });
 
-        try {
-            await ddb.send(putItemCommand);
+            try {
+                await ddb.send(putItemCommand);
+
+                //Success
+                return {
+                    statusCode: 201,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        shareId: id,
+                        ...responseContent
+                    })
+                };
+            }
+            catch (err) {
+                //Log and retry
+                console.error("Failed to save item in try " + (retry + 1), err);
+            }
         }
-        catch (err) {
-            return {
-                statusCode: 500,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: 'Unable to connect to Database'
-                })
-            };
-        }
 
+        //Fail after 3 tries
         return {
-            statusCode: 201,
+            statusCode: 500,
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                shareId: id,
-                ...responseContent
+                message: 'Internal error'
             })
         };
     }
