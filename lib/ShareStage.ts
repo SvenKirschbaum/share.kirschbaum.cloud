@@ -45,6 +45,7 @@ export default class ShareStage extends Stage {
     const state = new ShareStateStack(this, 'State', {
       prefix: props.statePrefix,
     });
+
     const utilities = new ShareUtilStack(this, 'Utilities', {
       domain: frontendDomain,
       delegation: props.delegation,
@@ -53,7 +54,6 @@ export default class ShareStage extends Stage {
       storageBucket: state.storageBucket,
     });
 
-    // eslint-disable-next-line no-unused-vars
     const api = new ShareApiStack(this, 'Api', {
       apiDomain,
       emailDomain: disableEmail ? undefined : frontendDomain,
@@ -68,8 +68,7 @@ export default class ShareStage extends Stage {
       table: state.table,
     });
 
-    // eslint-disable-next-line no-unused-vars
-    const frontend = new ShareFrontendStack(this, 'Frontend', {
+    new ShareFrontendStack(this, 'Frontend', {
       frontendDomain,
       disableEmail,
       apiDomain: apiDomain ?? api.distribution.distributionDomainName,

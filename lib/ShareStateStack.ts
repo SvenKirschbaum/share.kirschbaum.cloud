@@ -1,8 +1,8 @@
-import {
-  Duration, PhysicalName, Stack, StackProps,
-} from 'aws-cdk-lib';
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { AttributeType, StreamViewType, Table } from 'aws-cdk-lib/aws-dynamodb';
+import {
+  AttributeType, BillingMode, StreamViewType, Table,
+} from 'aws-cdk-lib/aws-dynamodb';
 import {
   BlockPublicAccess, Bucket, BucketEncryption, HttpMethods,
 } from 'aws-cdk-lib/aws-s3';
@@ -34,8 +34,7 @@ export default class ShareStateStack extends Stack {
         name: 'SK',
         type: AttributeType.STRING,
       },
-      readCapacity: 1,
-      writeCapacity: 1,
+      billingMode: BillingMode.PAY_PER_REQUEST,
       timeToLiveAttribute: 'expire',
       stream: StreamViewType.OLD_IMAGE,
     });
@@ -46,8 +45,6 @@ export default class ShareStateStack extends Stack {
         type: AttributeType.STRING,
       },
       indexName: 'user-index',
-      writeCapacity: 1,
-      readCapacity: 1,
     });
   }
 
@@ -68,6 +65,7 @@ export default class ShareStateStack extends Stack {
           abortIncompleteMultipartUploadAfter: Duration.days(1),
         },
       ],
+      transferAcceleration: true,
     });
   }
 }

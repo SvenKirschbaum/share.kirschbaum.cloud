@@ -13,7 +13,7 @@ class UploadService {
     private readonly s3: S3Client;
 
     constructor() {
-        this.s3 = new S3Client({ region: process.env.AWS_REGION });
+        this.s3 = new S3Client({ region: process.env.AWS_REGION, useAccelerateEndpoint: true, useDualstackEndpoint: true });
     }
 
     public async startUpload(parts: number, contentType: string): Promise<UploadInfo> {
@@ -22,7 +22,7 @@ class UploadService {
         const createMultipartUploadCommand = new CreateMultipartUploadCommand({
             Bucket: process.env.FILE_BUCKET as string,
             Key: fileId,
-            ContentType: contentType
+            ContentType: contentType,
         });
 
         const createUploadResponse = await this.s3.send(createMultipartUploadCommand);
