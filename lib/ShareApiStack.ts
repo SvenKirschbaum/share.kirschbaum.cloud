@@ -61,6 +61,7 @@ export default class ShareApiStack extends Stack {
         ],
         allowMethods: [CorsHttpMethod.ANY],
         allowOrigins: ['*'],
+        maxAge: Duration.days(1),
       },
     });
 
