@@ -4,7 +4,7 @@ import {
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
-import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
+import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import {
   CachePolicy,
@@ -62,7 +62,13 @@ export default class ShareFrontendStack extends Stack {
     );
   }
 
-  private createBucket(apiDomain: string, keycloakUrl: string, keycloakRealm: string, keycloakClientId: string, disableEmail: boolean) {
+  private createBucket(
+    apiDomain: string,
+    keycloakUrl: string,
+    keycloakRealm: string,
+    keycloakClientId: string,
+    disableEmail: boolean,
+  ) {
     this.frontendBucket = new Bucket(this, 'Bucket', {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       removalPolicy: RemovalPolicy.DESTROY,
@@ -70,11 +76,30 @@ export default class ShareFrontendStack extends Stack {
       encryption: BucketEncryption.S3_MANAGED,
     });
 
-    new BucketDeployment(this, 'Deployment', {
+    new BucketDeployment(this, 'FrontendDeployment', {
       destinationBucket: this.frontendBucket,
+      // Exclude config Deployment files from sync, to prevent them from beeing deleted
+      exclude: ['index.html', 'config.json'],
       sources: [
         Source.asset('./frontend/build', {
-          exclude: ['*.map', 'config.json'],
+          // Exclude files from bundling
+          exclude: ['*.map', 'config.json', 'index.html', 'asset-manifest.json'],
+        }),
+      ],
+      cacheControl: [
+        CacheControl.fromString('public, max-age=31536000, immutable'),
+      ],
+    });
+
+    new BucketDeployment(this, 'ConfigDeployment', {
+      destinationBucket: this.frontendBucket,
+      // Exclude everything not related to this deployment to prevent other files from being deleted
+      exclude: ['*'],
+      include: ['index.html', 'config.json'],
+      sources: [
+        Source.asset('./frontend/build', {
+          // Bundle only index.html
+          exclude: ['*', '!index.html'],
         }),
         Source.jsonData('config.json', {
           API_URL: `https://${apiDomain}`,
@@ -85,6 +110,9 @@ export default class ShareFrontendStack extends Stack {
             clientId: keycloakClientId,
           },
         }),
+      ],
+      cacheControl: [
+        CacheControl.fromString('public, max-age=300'),
       ],
     });
   }
@@ -110,12 +138,6 @@ export default class ShareFrontendStack extends Stack {
     });
     this.responseHeadersPolicy = new DefaultResponseHeadersPolicy(this, 'ResponseHeaderPolicy', {});
 
-    const configCachePolicy = new CachePolicy(this, 'ConfigCachePolicy', {
-      minTtl: Duration.minutes(5),
-      defaultTtl: Duration.minutes(5),
-      maxTtl: Duration.minutes(5),
-    });
-
     this.distribution = new Distribution(this, 'Distribution', {
       certificate,
       domainNames: domain ? [domain] : undefined,
@@ -134,24 +156,10 @@ export default class ShareFrontendStack extends Stack {
         origin,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: new CachePolicy(this, 'DefaultCachePolicy', {
-          minTtl: Duration.days(365),
+          minTtl: Duration.seconds(1),
           defaultTtl: Duration.days(365),
           maxTtl: Duration.days(365),
         }),
-      },
-      additionalBehaviors: {
-        '/index.html': {
-          origin,
-          responseHeadersPolicy: this.responseHeadersPolicy,
-          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: configCachePolicy,
-        },
-        '/config.json': {
-          origin,
-          responseHeadersPolicy: this.responseHeadersPolicy,
-          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: configCachePolicy,
-        },
       },
 
       logBucket,
