@@ -275,9 +275,6 @@ function BaseAddDialog(props) {
                 }
             }
         )
-        .finally(() => {
-            setLoading(false);
-        })
         .then(async res => {
             setAddedId(res.data.shareId);
 
@@ -287,6 +284,9 @@ function BaseAddDialog(props) {
 
             if(!props.ignoreClipboard) navigator.clipboard.writeText(forwardURLPrefix + res.data.shareId).then();
             setShowSuccess(true);
+        })
+        .finally(() => {
+            setLoading(false);
         })
         .catch(error => {
             setErrorMessage(error.response?.message || error.message);

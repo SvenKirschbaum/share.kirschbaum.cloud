@@ -1,13 +1,17 @@
 import {Dialog, DialogContent, DialogContentText, DialogTitle, LinearProgress} from "@mui/material";
 import prettyBytes from "pretty-bytes";
 import React from "react";
+import {useDelay} from "../../util/delay";
 
 function UploadProgressDialog(props) {
-    const {uploadProgress, uploadSpeedBPS, ...rProps} = {...props};
+    const {uploadProgress, uploadSpeedBPS, open, ...rProps} = {...props};
+
+    const delayedOpen = useDelay(open);
 
     return (
         <Dialog
             {...rProps}
+            open={delayedOpen}
             sx={{
                 textAlign: 'center'
             }}
