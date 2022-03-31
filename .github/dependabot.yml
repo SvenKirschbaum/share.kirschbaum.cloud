@@ -16,3 +16,7 @@ updates:
     directory: "/lambda/nodejs-edge"
     schedule:
       interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
