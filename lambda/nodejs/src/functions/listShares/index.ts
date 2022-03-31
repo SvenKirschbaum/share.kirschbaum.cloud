@@ -4,10 +4,13 @@ import {
     QueryCommand
 } from "@aws-sdk/client-dynamodb";
 import moment = require("moment");
+import middy from "@middy/core";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
+import {tracer} from "../../services/Tracer";
 
-const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
+const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
-export const handler = async function listSharesHandler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
+const lambdaHandler = async function listSharesHandler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
     const roles = event.requestContext.authorizer?.jwt.claims.roles as string[] | undefined;
 
     if(!roles?.includes('member')) {
@@ -88,3 +91,6 @@ export const handler = async function listSharesHandler(event: APIGatewayProxyEv
         };
     }
 }
+
+export const handler = middy(lambdaHandler)
+    .use(captureLambdaHandler(tracer))

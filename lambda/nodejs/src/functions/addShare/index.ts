@@ -7,10 +7,13 @@ import {AddShareRequestDto} from "./AddShareRequestDto";
 import {getRandomId} from "./randomId";
 import moment = require("moment");
 import {uploadService} from "../../services/UploadService";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
+import middy from "@middy/core";
+import {tracer} from "../../services/Tracer";
 
-const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
+const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
-export const handler = async function addShareHandler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
+const lambdaHandler = async function addShareHandler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
     const claims = event.requestContext.authorizer.jwt.claims;
     const roles = claims.roles as string[] | undefined;
 
@@ -185,3 +188,6 @@ export const handler = async function addShareHandler(event: APIGatewayProxyEven
         };
     }
 }
+
+export const handler = middy(lambdaHandler)
+    .use(captureLambdaHandler(tracer))

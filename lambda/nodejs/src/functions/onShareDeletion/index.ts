@@ -3,13 +3,13 @@ import {
     DynamoDBStreamHandler
 } from "aws-lambda";
 import {DeleteObjectCommand, S3Client} from "@aws-sdk/client-s3";
-import {BatchWriteItemCommand, DynamoDBClient, QueryCommand} from "@aws-sdk/client-dynamodb";
+import middy from "@middy/core";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
+import {tracer} from "../../services/Tracer";
 
-const s3 = new S3Client({ region: process.env.AWS_REGION });
-const ddb = new DynamoDBClient({region: process.env.AWS_REGION});
+const s3 = tracer.captureAWSv3Client(new S3Client({ region: process.env.AWS_REGION }));
 
-
-export const handler: DynamoDBStreamHandler = async function onShareDeletion(event: DynamoDBStreamEvent): Promise<void> {
+const lambdaHandler: DynamoDBStreamHandler = async function onShareDeletion(event: DynamoDBStreamEvent): Promise<void> {
     await Promise.all(
         event.Records.map(async record => {
             if(record.eventName === 'REMOVE') {
@@ -28,3 +28,7 @@ export const handler: DynamoDBStreamHandler = async function onShareDeletion(eve
         })
     );
 }
+
+
+export const handler = middy(lambdaHandler)
+    .use(captureLambdaHandler(tracer))

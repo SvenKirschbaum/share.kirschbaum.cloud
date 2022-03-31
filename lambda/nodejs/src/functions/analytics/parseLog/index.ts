@@ -7,12 +7,15 @@ import {createGunzip} from "zlib";
 import CloudFrontParser from 'cloudfront-log-parser'
 import LogSubmittedEvent from "../../../types/LogSubmittedEvent";
 import {ClickData, ClickDataMap} from "../../../types/ClickData";
+import middy from "@middy/core";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
+import {tracer} from "../../../services/Tracer";
 
-const s3 = new S3Client({ region: process.env.AWS_REGION });
+const s3 = tracer.captureAWSv3Client(new S3Client({ region: process.env.AWS_REGION }));
 
 const pathRegex = /\/d\/(\w+)/;
 
-export const handler: Handler = async function processLogs(event: LogSubmittedEvent): Promise<ClickData> {
+const lambdaHandler: Handler = async function processLogs(event: LogSubmittedEvent): Promise<ClickData> {
     const clickData: ClickDataMap = new Map();
 
     const getObjectCommand = new GetObjectCommand({
@@ -44,3 +47,7 @@ export const handler: Handler = async function processLogs(event: LogSubmittedEv
 
     return Array.from(clickData.values());
 }
+
+
+export const handler = middy(lambdaHandler)
+    .use(captureLambdaHandler(tracer))

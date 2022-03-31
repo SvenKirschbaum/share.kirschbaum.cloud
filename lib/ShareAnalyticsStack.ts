@@ -44,6 +44,9 @@ export default class ShareAnalyticsStack extends Stack {
   private createStateMachine(table: Table) {
     const parseLogFunction = new DefaultNodejsFunction(this, 'parseLogFunction', {
       entry: 'lambda/nodejs/src/functions/analytics/parseLog/index.ts',
+      environment: {
+        POWERTOOLS_SERVICE_NAME: 'share-analytics',
+      },
     });
     this.logBucket.grantRead(parseLogFunction);
 
@@ -109,6 +112,7 @@ export default class ShareAnalyticsStack extends Stack {
 
     this.stateMachine = new sfn.StateMachine(this, 'LogParsingStateMachine', {
       definition,
+      tracingEnabled: true,
     });
   }
 
@@ -117,6 +121,7 @@ export default class ShareAnalyticsStack extends Stack {
       entry: 'lambda/nodejs/src/functions/analytics/submitLogAnalysis/index.ts',
       environment: {
         LOG_PARSING_STATE_MACHINE: this.stateMachine.stateMachineArn,
+        POWERTOOLS_SERVICE_NAME: 'share-analytics',
       },
     });
     this.stateMachine.grantStartExecution(submitLogAnalysisFunction);

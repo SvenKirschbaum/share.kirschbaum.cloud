@@ -93,6 +93,7 @@ export default class ShareUtilStack extends Stack {
       entry: 'lambda/nodejs/src/functions/onShareDeletion/index.ts',
       environment: {
         FILE_BUCKET: storageBucket.bucketName,
+        POWERTOOLS_SERVICE_NAME: 'share-deletion',
       },
     });
     storageBucket.grantDelete(onShareDeletionFunction);

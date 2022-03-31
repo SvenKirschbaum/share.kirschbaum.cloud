@@ -126,6 +126,7 @@ export default class ShareApiStack extends Stack {
     const defaultLambdaEnvironment: {[p: string]: string} = {
       TABLE_NAME: table.tableName,
       FILE_BUCKET: storageBucket.bucketName,
+      POWERTOOLS_SERVICE_NAME: 'share-api',
     };
 
     if (emailDomain) {

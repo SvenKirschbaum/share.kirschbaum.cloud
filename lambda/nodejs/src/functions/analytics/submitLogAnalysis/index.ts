@@ -2,12 +2,15 @@ import {
     S3CreateEvent,
     S3Handler,
 } from "aws-lambda";
-import {StepFunctions} from "aws-sdk";
 import LogSubmittedEvent from "../../../types/LogSubmittedEvent";
+import middy from "@middy/core";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
+import {tracer} from "../../../services/Tracer";
+import {SFNClient, StartExecutionCommand} from "@aws-sdk/client-sfn";
 
-const stepFunctions = new StepFunctions();
+const sfnClient = tracer.captureAWSv3Client(new SFNClient({ region: process.env.AWS_REGION }));
 
-export const handler: S3Handler = async function submitLogAnalysis(event: S3CreateEvent): Promise<void> {
+const lambdaHandler: S3Handler = async function submitLogAnalysis(event: S3CreateEvent): Promise<void> {
     await Promise.all(
         event.Records.map(async record => {
             if(record.eventName.startsWith('ObjectCreated:')) {
@@ -16,12 +19,17 @@ export const handler: S3Handler = async function submitLogAnalysis(event: S3Crea
                     objectKey: record.s3.object.key
                 };
 
-                await stepFunctions.startExecution({
+                const startCommand = new StartExecutionCommand({
                     input: JSON.stringify(eventData),
                     name: `${record.s3.object.key}-${record.s3.object.eTag}`,
                     stateMachineArn: process.env.LOG_PARSING_STATE_MACHINE as string
-                }).promise();
+                });
+
+                await sfnClient.send(startCommand);
             }
         })
     );
 }
+
+export const handler = middy(lambdaHandler)
+    .use(captureLambdaHandler(tracer))

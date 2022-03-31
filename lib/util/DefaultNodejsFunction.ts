@@ -1,6 +1,6 @@
 import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
-  Architecture, Code, LayerVersion, Runtime,
+  Architecture, Code, LayerVersion, Runtime, Tracing,
 } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -34,6 +34,7 @@ export default class DefaultNodejsFunction extends NodejsFunction {
       architecture: Architecture.ARM_64,
       layers: [layer],
       logRetention: RetentionDays.TWO_WEEKS,
+      tracing: Tracing.ACTIVE,
     });
   }
 }
