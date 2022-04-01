@@ -8,6 +8,8 @@ import moment = require("moment");
 import {tracer} from "../../services/Tracer";
 import middy from "@middy/core";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {logger} from "../../services/Logger";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 const ses = tracer.captureAWSv3Client(new SESv2Client({region: process.env.AWS_REGION}));
@@ -107,9 +109,11 @@ const lambdaHandler = async function completeUpload(event: APIGatewayProxyEventV
                             },
                         }
                     }))
+                    logger.info("Sent notification emails");
                 }
                 catch (e) {
-                    console.error(`Sending of Email notification failed for share ${id}`,e);
+                    tracer.addErrorAsMetadata(e as Error);
+                    logger.error(`Sending of Email notification failed`,e as Error);
                 }
             }
 
@@ -118,14 +122,15 @@ const lambdaHandler = async function completeUpload(event: APIGatewayProxyEventV
             };
         }
         catch (err) {
-            console.error(err);
+            tracer.addErrorAsMetadata(err as Error);
+            logger.error("Failed to process request", err as Error);
             return {
                 statusCode: 500,
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: 'Unable to connect to Database'
+                    message: 'Internal Error'
                 })
             };
         }
@@ -143,3 +148,4 @@ const lambdaHandler = async function completeUpload(event: APIGatewayProxyEventV
 
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
+    .use(injectLambdaContext(logger))

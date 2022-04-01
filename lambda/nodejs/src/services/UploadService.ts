@@ -9,6 +9,7 @@ import {
 import UploadInfo from "../types/UploadInfo";
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 import {tracer} from "./Tracer";
+import {logger} from "./Logger";
 
 class UploadService {
     private readonly s3: S3Client;
@@ -41,6 +42,8 @@ class UploadService {
             })
         );
 
+        logger.info("Started upload", {fileId, uploadId: createUploadResponse.UploadId, partUrls});
+
         return {
             uploadId: createUploadResponse.UploadId as string,
             fileId: fileId,
@@ -59,6 +62,8 @@ class UploadService {
         });
 
         await this.s3.send(completeMultipartUploadCommand);
+
+        logger.info("Finished upload", {uploadId, fileId});
     }
 }
 

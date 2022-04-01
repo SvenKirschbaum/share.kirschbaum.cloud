@@ -11,7 +11,7 @@ export const response404: CloudFrontResultResponse = {
         ]
     },
     body: JSON.stringify({
-        message: 'THe provided Id is invalid'
+        message: 'The provided Id is invalid'
     })
 }
 

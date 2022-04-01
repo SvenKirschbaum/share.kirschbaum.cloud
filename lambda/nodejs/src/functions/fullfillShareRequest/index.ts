@@ -9,6 +9,8 @@ import FileInfo from "../../types/FileInfo";
 import middy from "@middy/core";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
 import {tracer} from "../../services/Tracer";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {logger} from "../../services/Logger";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
@@ -108,15 +110,15 @@ const lambdaHandler = async function fullfillShareRequestHandler(event: APIGatew
     }
     catch (err) {
         //TODO: Differentiate error types
-
-        console.error(err);
+        tracer.addErrorAsMetadata(err as Error);
+        logger.error("Failed to process request", err as Error);
         return {
             statusCode: 500,
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: 'Unable to connect to Database'
+                message: 'Internal Error'
             })
         };
     }
@@ -124,3 +126,4 @@ const lambdaHandler = async function fullfillShareRequestHandler(event: APIGatew
 
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
+    .use(injectLambdaContext(logger))

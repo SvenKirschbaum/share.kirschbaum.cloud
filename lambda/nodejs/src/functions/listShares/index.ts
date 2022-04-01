@@ -7,6 +7,8 @@ import moment = require("moment");
 import middy from "@middy/core";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
 import {tracer} from "../../services/Tracer";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {logger} from "../../services/Logger";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
@@ -79,7 +81,8 @@ const lambdaHandler = async function listSharesHandler(event: APIGatewayProxyEve
         };
     }
     catch (err) {
-        console.error(err);
+        tracer.addErrorAsMetadata(err as Error);
+        logger.error("Failed to process request", err as Error);
         return {
             statusCode: 500,
             headers: {
@@ -94,3 +97,4 @@ const lambdaHandler = async function listSharesHandler(event: APIGatewayProxyEve
 
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
+    .use(injectLambdaContext(logger))
