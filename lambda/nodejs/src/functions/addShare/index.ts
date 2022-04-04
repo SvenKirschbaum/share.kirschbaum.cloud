@@ -10,6 +10,8 @@ import {uploadService} from "../../services/UploadService";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
 import middy from "@middy/core";
 import {tracer} from "../../services/Tracer";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {logger} from "../../services/Logger";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
@@ -163,11 +165,13 @@ const lambdaHandler = async function addShareHandler(event: APIGatewayProxyEvent
             }
             catch (err) {
                 //Log and retry
-                console.error("Failed to save item in try " + (retry + 1), err);
+                tracer.addErrorAsMetadata(err as Error);
+                logger.warn("Failed to save item in try " + (retry + 1), err as Error);
             }
         }
 
         //Fail after 3 tries
+        logger.error("Failed to save item after 3 tries");
         return {
             statusCode: 500,
             headers: {
@@ -191,3 +195,4 @@ const lambdaHandler = async function addShareHandler(event: APIGatewayProxyEvent
 
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
+    .use(injectLambdaContext(logger))
