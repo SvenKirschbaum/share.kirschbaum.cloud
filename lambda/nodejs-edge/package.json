@@ -7,7 +7,7 @@
     "@aws-sdk/client-s3": "^3.58.0",
     "@aws-sdk/client-secrets-manager": "^3.58.0",
     "@middy/core": "^2.5.7",
-    "moment": "^2.29.1"
+    "moment": "^2.29.2"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.93"
