@@ -42,6 +42,7 @@ export default class SharePipelineStack extends Stack {
     const pipeline = new pipelines.CodePipeline(this, 'Pipeline', {
       synth,
       publishAssetsInParallel: false,
+      crossAccountKeys: true,
     });
 
     pipeline.addStage(new ShareStage(this, 'Staging', {
@@ -59,7 +60,7 @@ export default class SharePipelineStack extends Stack {
       },
       statePrefix: 'Staging',
       env: {
-        account: '743848950232',
+        account: '276098254089',
         region: 'eu-central-1',
       },
     }));

@@ -7,7 +7,7 @@ const app = new cdk.App();
 
 new SharePipelineStack(app, 'Pipeline', {
   env: {
-    account: '743848950232',
+    account: '900412866728',
     region: 'eu-central-1',
   },
 });
