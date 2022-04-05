@@ -179,7 +179,6 @@ export default class ShareFrontendStack extends Stack {
     }
 
     new CfnOutput(this, 'FrontendDomain', {
-      exportName: 'FrontendDomain',
       value: domain ?? this.distribution.distributionDomainName,
     });
   }

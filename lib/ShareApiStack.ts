@@ -117,7 +117,6 @@ export default class ShareApiStack extends Stack {
     }
 
     new CfnOutput(this, 'ApiDomain', {
-      exportName: 'ApiDomain',
       value: domain ?? this.distribution.distributionDomainName,
     });
   }

@@ -60,8 +60,7 @@ export default class ShareUtilStack extends Stack {
         });
       }
 
-      new CfnOutput(this, 'NameserverOutput', {
-        exportName: 'Nameservers',
+      new CfnOutput(this, 'Nameserver', {
         value: Fn.join(' ', this.zone.hostedZoneNameServers as string[]),
       });
     }
