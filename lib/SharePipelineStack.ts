@@ -8,7 +8,7 @@ export default class SharePipelineStack extends Stack {
     super(scope, id, props);
 
     const source = pipelines.CodePipelineSource.connection('fallobst22/share.kirschbaum.cloud', 'master', {
-      connectionArn: 'arn:aws:codestar-connections:eu-central-1:743848950232:connection/88015f17-9d7c-4af0-a5a9-23af5111a438',
+      connectionArn: 'arn:aws:codestar-connections:eu-central-1:900412866728:connection/800140c2-1054-4743-bdea-deb6eb8dedcc',
     });
 
     const buildFrontend = new pipelines.ShellStep('BuildFrontend', {
