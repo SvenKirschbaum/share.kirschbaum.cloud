@@ -66,7 +66,7 @@ export default class SharePipelineStack extends Stack {
     }));
 
     pipeline.addStage(
-      new ShareStage(this, 'Prod', {
+      new ShareStage(scope, 'Prod', {
         domain: 'share.kirschbaum.cloud',
         delegation: {
           parentDomain: 'kirschbaum.cloud',
