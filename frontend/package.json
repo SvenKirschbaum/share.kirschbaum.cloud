@@ -10,7 +10,7 @@
     "@mui/material": "^5.6.0",
     "@mui/styles": "^5.6.0",
     "@mui/icons-material": "^5.6.0",
-    "@mui/lab": "^5.0.0-alpha.75",
+    "@mui/lab": "^5.0.0-alpha.76",
     "@react-keycloak/web": "^3.4.0",
     "axios": "^0.26.1",
     "http-proxy-middleware": "^2.0.4",
