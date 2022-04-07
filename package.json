@@ -31,7 +31,7 @@
     "@aws-cdk/aws-apigatewayv2-integrations-alpha": "^2.18.0-alpha.0",
     "aws-cdk-lib": "^2.19.0",
     "aws-cdk-ses-domain-identity": "^2.0.0",
-    "aws-sdk": "^2.1108.0",
+    "aws-sdk": "^2.1109.0",
     "cdk-dia": "^0.7.0",
     "constructs": "^10.0.108",
     "esbuild": "^0.14.34",
