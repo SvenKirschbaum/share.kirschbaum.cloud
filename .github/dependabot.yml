@@ -2,10 +2,12 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    rebase-strategy: "disabled"
     schedule:
       interval: "daily"
   - package-ecosystem: "npm"
     directory: "/frontend"
+    rebase-strategy: "disabled"
     schedule:
       interval: "daily"
     ignore:
@@ -15,9 +17,11 @@ updates:
         versions: ["6.x"]
   - package-ecosystem: "npm"
     directory: "/lambda/nodejs"
+    rebase-strategy: "disabled"
     schedule:
       interval: "daily"
   - package-ecosystem: "npm"
     directory: "/lambda/nodejs-edge"
+    rebase-strategy: "disabled"
     schedule:
       interval: "daily"
