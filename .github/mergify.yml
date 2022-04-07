@@ -12,6 +12,12 @@ pull_request_rules:
   - name: automatic merge for master
     conditions:
       - base=master
+      - -draft
+      - or:
+        - "#approved-reviews-by>=1"
+        - and:
+          - author=fallobst22
+          - "body~=#ignore-review"
     actions:
       queue:
   - name: automatic approve for Dependabot pull requests
@@ -20,3 +26,16 @@ pull_request_rules:
       - title~=Bump [^\s]+ from ([\d]+)\..+ to \1\.
     actions:
       review:
+  - name: assign pr
+    conditions:
+      - -draft
+      - or:
+        - -author~=^dependabot(|-preview)\[bot\]$
+        - -title~=Bump [^\s]+ from ([\d]+)\..+ to \1\.
+    actions:
+      assign:
+        add_users:
+          - fallobst22
+      request_reviews:
+        users:
+          - fallobst22
