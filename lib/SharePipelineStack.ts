@@ -1,49 +1,16 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as pipelines from 'aws-cdk-lib/pipelines';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import ShareStage from './ShareStage';
 
 export default class SharePipelineStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
 
-    const source = pipelines.CodePipelineSource.connection('fallobst22/share.kirschbaum.cloud', 'master', {
-      connectionArn: 'arn:aws:codestar-connections:eu-central-1:900412866728:connection/800140c2-1054-4743-bdea-deb6eb8dedcc',
-    });
+    this.createBuild();
 
-    const buildFrontend = new pipelines.ShellStep('BuildFrontend', {
-      input: source,
-      primaryOutputDirectory: './frontend/build',
-      installCommands: [
-        'cd frontend',
-        'npm ci',
-      ],
-      commands: [
-        'npm run build',
-      ],
-    });
-
-    const synth = new pipelines.ShellStep('Synth', {
-      input: source,
-      additionalInputs: {
-        'frontend/build': buildFrontend,
-      },
-      installCommands: [
-        'npm ci',
-        '(cd lambda/nodejs && npm ci)',
-        '(cd lambda/nodejs-edge && npm ci)',
-      ],
-      commands: [
-        'npm test',
-        'npx cdk synth',
-      ],
-    });
-
-    const pipeline = new pipelines.CodePipeline(this, 'Pipeline', {
-      synth,
-      publishAssetsInParallel: false,
-      crossAccountKeys: true,
-    });
+    const pipeline = this.createPipeline();
 
     pipeline.addStage(new ShareStage(this, 'Staging', {
       domain: 'share-staging.kirschbaum.cloud',
@@ -91,5 +58,88 @@ export default class SharePipelineStack extends Stack {
         ],
       },
     );
+  }
+
+  private createPipeline() {
+    const source = pipelines.CodePipelineSource.connection('fallobst22/share.kirschbaum.cloud', 'master', {
+      connectionArn: 'arn:aws:codestar-connections:eu-central-1:900412866728:connection/800140c2-1054-4743-bdea-deb6eb8dedcc',
+    });
+
+    const buildFrontend = new pipelines.ShellStep('BuildFrontend', {
+      input: source,
+      primaryOutputDirectory: './frontend/build',
+      installCommands: [
+        'cd frontend',
+        'npm ci',
+      ],
+      commands: [
+        'npm run build',
+      ],
+    });
+
+    const synth = new pipelines.ShellStep('Synth', {
+      input: source,
+      additionalInputs: {
+        'frontend/build': buildFrontend,
+      },
+      installCommands: [
+        'npm ci',
+        '(cd lambda/nodejs && npm ci)',
+        '(cd lambda/nodejs-edge && npm ci)',
+      ],
+      commands: [
+        'npm test',
+        'npx cdk synth',
+      ],
+    });
+
+    return new pipelines.CodePipeline(this, 'Pipeline', {
+      synth,
+      publishAssetsInParallel: false,
+      crossAccountKeys: true,
+    });
+  }
+
+  private createBuild() {
+    new codebuild.Project(this, 'Build', {
+      source: codebuild.Source.gitHub({
+        owner: 'fallobst22',
+        repo: 'share.kirschbaum.cloud',
+        webhook: true,
+        webhookFilters: [
+          codebuild.FilterGroup.inEventOf(codebuild.EventAction.PUSH).andBranchIs('master'),
+          codebuild.FilterGroup.inEventOf(
+            codebuild.EventAction.PULL_REQUEST_CREATED,
+            codebuild.EventAction.PULL_REQUEST_UPDATED,
+            codebuild.EventAction.PULL_REQUEST_REOPENED,
+          ),
+        ],
+        reportBuildStatus: true,
+      }),
+      buildSpec: codebuild.BuildSpec.fromObject({
+        version: 0.2,
+        phases: {
+          install: {
+            commands: [
+              'npm ci',
+              '(cd frontend && npm ci)',
+              '(cd lambda/nodejs && npm ci)',
+              '(cd lambda/nodejs-edge && npm ci)',
+            ],
+          },
+          build: {
+            commands: [
+              '(cd frontend && npm run build)',
+              'npm test',
+              'npx cdk synth',
+            ],
+          },
+        },
+      }),
+      environment: {
+        buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+        computeType: codebuild.ComputeType.SMALL,
+      },
+    });
   }
 }
