@@ -24,4 +24,8 @@ describe('ShareStateStack', () => {
       },
     });
   });
+
+  test('this will fail', () => {
+    throw new Error('FAILED!');
+  });
 });
