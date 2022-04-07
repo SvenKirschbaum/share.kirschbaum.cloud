@@ -34,7 +34,7 @@
     "aws-sdk": "^2.1108.0",
     "cdk-dia": "^0.7.0",
     "constructs": "^10.0.107",
-    "esbuild": "^0.14.32",
+    "esbuild": "^0.14.34",
     "source-map-support": "^0.5.21"
   }
 }
