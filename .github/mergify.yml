@@ -1,0 +1,22 @@
+defaults:
+  actions:
+    queue:
+      name: default
+      method: squash
+
+queue_rules:
+  - name: default
+    conditions: []
+
+pull_request_rules:
+  - name: automatic merge for master
+    conditions:
+      - base=master
+    actions:
+      queue:
+  - name: automatic approve for Dependabot pull requests
+    conditions:
+      - author~=^dependabot(|-preview)\[bot\]$
+      - title~=Bump [^\s]+ from ([\d]+)\..+ to \1\.
+    actions:
+      review:
