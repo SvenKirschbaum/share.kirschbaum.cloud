@@ -8,15 +8,16 @@ updates:
     directory: "/frontend"
     schedule:
       interval: "daily"
+    ignore:
+      - dependency-name: "react-router"
+        versions: ["6.x"]
+      - dependency-name: "react-router-dom"
+        versions: ["6.x"]
   - package-ecosystem: "npm"
     directory: "/lambda/nodejs"
     schedule:
       interval: "daily"
   - package-ecosystem: "npm"
     directory: "/lambda/nodejs-edge"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "github-actions"
-    directory: "/"
     schedule:
       interval: "daily"
