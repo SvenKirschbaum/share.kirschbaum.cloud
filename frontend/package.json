@@ -8,7 +8,6 @@
     "@emotion/styled": "^11.8.1",
     "@fontsource/roboto": "^4.5.5",
     "@mui/material": "^5.6.0",
-    "@mui/styles": "^5.6.0",
     "@mui/icons-material": "^5.6.0",
     "@mui/lab": "^5.0.0-alpha.76",
     "@react-keycloak/web": "^3.4.0",
