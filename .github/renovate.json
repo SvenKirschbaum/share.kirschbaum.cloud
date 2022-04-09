@@ -3,6 +3,9 @@
     "config:base"
   ],
   "rebaseWhen": "conflicted",
+  "vulnerabilityAlerts": {
+    "addLabels": ["security"]
+  },
   "major": {
     "addLabels": [
       "major"
