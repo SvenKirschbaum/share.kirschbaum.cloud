@@ -1,0 +1,20 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "major": {
+    "addLabels": [
+      "major"
+    ]
+  },
+  "minor": {
+    "addLabels": [
+      "minor"
+    ]
+  },
+  "patch": {
+    "addLabels": [
+      "patch"
+    ]
+  }
+}
