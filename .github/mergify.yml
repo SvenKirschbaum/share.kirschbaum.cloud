@@ -20,18 +20,22 @@ pull_request_rules:
           - "body~=#ignore-review"
     actions:
       queue:
-  - name: automatic approve for Dependabot pull requests
+  - name: automatic approve for Renovate pull requests
     conditions:
-      - author~=^dependabot(|-preview)\[bot\]$
-      - title~=Bump [^\s]+ from ([\d]+)\..+ to \1\.
+      - author=renovate[bot]
+      - or:
+        - label=minor
+        - label=patch
     actions:
       review:
   - name: assign pr
     conditions:
       - -draft
       - or:
-        - -author~=^dependabot(|-preview)\[bot\]$
-        - -title~=Bump [^\s]+ from ([\d]+)\..+ to \1\.
+        - -author=renovate[bot]
+        - and:
+          - -label=minor
+          - -label=patch
     actions:
       assign:
         add_users:

@@ -1,0 +1,31 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "rebaseWhen": "conflicted",
+  "vulnerabilityAlerts": {
+    "addLabels": ["security"]
+  },
+  "major": {
+    "addLabels": [
+      "major"
+    ]
+  },
+  "minor": {
+    "addLabels": [
+      "minor"
+    ]
+  },
+  "patch": {
+    "addLabels": [
+      "patch"
+    ]
+  },
+  "packageRules": [
+    {
+      "matchPackageNames": ["react-router", "react-router-dom"],
+      "allowedVersions": "<6.0.0"
+
+    }
+  ]
+}
