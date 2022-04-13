@@ -1,32 +1,13 @@
-import React, {useState} from "react";
+import {useEffect} from "react";
 
-import './DropFile.css';
-import {Backdrop, Card, CardContent} from "@mui/material";
-import {useHistory} from "react-router-dom";
+import {useNavigate} from "react-router";
+import {useKeycloak} from "@react-keycloak/web";
 
 function DropFile(props) {
-    const history = useHistory();
+    const navigate = useNavigate();
+    const {keycloak} = useKeycloak();
 
-    const [isDropping, setIsDropping] = useState(false);
-    const [lastEnter, setLastEnter] = useState(undefined);
-
-    const onDragEnter = (e) => {
-        if (e.dataTransfer.types.includes("Files")) {
-            setLastEnter(e.target);
-            setIsDropping(true);
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    }
-
-    const onDragLeave = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (lastEnter === e.target) {
-            setIsDropping(false);
-            setLastEnter(undefined);
-        }
-    }
+    const enabled = keycloak.authenticated && keycloak.tokenParsed?.roles?.includes('member');
 
     const onDragOver = (e) => {
         if (e.dataTransfer.types.includes("Files")) {
@@ -39,27 +20,34 @@ function DropFile(props) {
         if (e.dataTransfer.types.includes("Files")) {
             e.preventDefault();
             e.stopPropagation();
-
-            setIsDropping(false);
-            history.push({
-                pathname: '/add/file',
-                state: e.dataTransfer.files
-            });
+            navigate('/add/file', {state: e.dataTransfer.files});
         }
     }
 
-    return (
-        <div className="dropzone" onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}>
-            <Backdrop open={isDropping} style={{zIndex: 100}}>
-                <Card>
-                    <CardContent style={{textAlign: 'center'}}>
-                        Drop File
-                    </CardContent>
-                </Card>
-            </Backdrop>
-            {props.children}
-        </div>
-    );
+    useEffect(() => {
+        if(enabled) {
+            const controller = new AbortController();
+            document.addEventListener("drop", onDrop, { signal: controller.signal })
+            document.addEventListener("dragover", onDragOver, { signal: controller.signal })
+
+            return () => controller.abort()
+        }
+    }, [enabled])
+
+    return null;
+
+    // if(isDropping) {
+    //     return createPortal(
+    //         <Backdrop open={isDropping} style={{zIndex: 100}} sx={{pointerEvents: 'none'}}>
+    //             <Card>
+    //                 <CardContent style={{textAlign: 'center'}}>
+    //                     Drop File
+    //                 </CardContent>
+    //             </Card>
+    //         </Backdrop>,
+    //         document.body
+    //     );
+    // }
 }
 
 export default DropFile;

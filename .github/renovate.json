@@ -1,11 +1,5 @@
 {
   "extends": [
     "github>fallobst22/renovate-config"
-  ],
-  "packageRules": [
-    {
-      "matchPackageNames": ["react-router", "react-router-dom"],
-      "allowedVersions": "<6.0.0"
-    }
   ]
 }

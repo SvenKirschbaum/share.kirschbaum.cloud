@@ -16,7 +16,7 @@ import {
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, Paper,
     TextField, Typography,
 } from "@mui/material";
-import {Link, Route, Switch, useHistory} from "react-router-dom";
+import {Link, Route} from "react-router-dom";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -25,7 +25,7 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import moment from "moment";
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
-import {useLocation} from "react-router";
+import {Routes, useLocation, useNavigate} from "react-router";
 import {DateTimePicker} from "@mui/lab";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -38,29 +38,7 @@ const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]
 const forwardURLPrefix = window.location.protocol + '//' + window.location.host + '/d/';
 const requestURLPrefix = window.location.protocol + '//' + window.location.host + '/r/';
 
-function AddShare() {
-    return (
-        <Switch>
-            <Route exact path="/add">
-                <TypeSelection />
-            </Route>
-            <Route path="/add/link">
-                <AddLink />
-            </Route>
-            <Route path="/add/file">
-                <AddFile />
-            </Route>
-            <Route path="/add/request">
-                <AddRequest />
-            </Route>
-            <Route>
-                <NotFound />
-            </Route>
-        </Switch>
-    );
-}
-
-function TypeSelection() {
+export function TypeSelection() {
     return (
         <Card>
             <CardHeader title={'Add Share'} />
@@ -82,7 +60,7 @@ function TypeSelection() {
     );
 }
 
-function TypeOption(props) {
+export function TypeOption(props) {
     return (
         <ListItem>
             <Paper elevation={2} sx={{
@@ -100,7 +78,7 @@ function TypeOption(props) {
     );
 }
 
-function AddLink() {
+export function AddLink() {
 
     const [url, setURL] = useState('');
     const [urlInputHelper, setUrlInputHelper] = useState('');
@@ -138,7 +116,7 @@ function AddLink() {
     );
 }
 
-function AddFile() {
+export function AddFile() {
 
     const location = useLocation();
 
@@ -196,7 +174,7 @@ function AddFile() {
     );
 }
 
-function AddRequest() {
+export function AddRequest() {
 
     const {keycloak} = useKeycloak();
     const emailDisabled = useConfig('EMAIL_DISABLED');
@@ -237,7 +215,7 @@ function AddRequest() {
 
 function BaseAddDialog(props) {
     const {keycloak} = useKeycloak();
-    const history = useHistory();
+    const navigate = useNavigate();
     const apiUrl = useConfig('API_URL');
 
     const [title, setTitle] = useState('');
@@ -319,7 +297,7 @@ function BaseAddDialog(props) {
             </Card>
             <Dialog
                 open={showSuccess}
-                onClose={event => history.push('/')}
+                onClose={event => navigate('/')}
                 sx={{
                     textAlign: 'center'
                 }}
@@ -329,7 +307,7 @@ function BaseAddDialog(props) {
                     <DialogContentText>{props.successMessage ? props.successMessage({addedId}) : <React.Fragment>Your Share is accessible via the following Link: <a href={forwardURLPrefix + addedId}>{forwardURLPrefix + addedId}</a></React.Fragment>}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={event => history.push('/')} color={"primary"} variant={"contained"}>Ok</Button>
+                    <Button onClick={event => navigate('/')} color={"primary"} variant={"contained"}>Ok</Button>
                 </DialogActions>
             </Dialog>
             <Dialog
@@ -350,5 +328,3 @@ function BaseAddDialog(props) {
         </React.Fragment>
     );
 }
-
-export default AddShare;

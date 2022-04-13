@@ -3,18 +3,14 @@ import {ReactKeycloakProvider, useKeycloak} from "@react-keycloak/web";
 import {
     Container,
     CssBaseline,
-    Dialog,
-    DialogContent,
-    DialogContentText,
-    DialogTitle, useMediaQuery,
+    useMediaQuery,
 } from "@mui/material";
 
 import "@fontsource/roboto"
 import './App.css';
 import ShareList from "./components/ShareList";
-import {BrowserRouter, Route, Switch} from "react-router-dom";
-import AddShare from "./components/AddShare";
-import DropFile from "./components/DropFile";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {AddFile, AddRequest, AddLink, TypeSelection} from "./components/AddShare";
 import {LocalizationProvider} from "@mui/lab";
 import DateAdapter from '@mui/lab/AdapterMoment';
 import {createTheme, ThemeProvider} from "@mui/material/styles";
@@ -22,33 +18,20 @@ import RequestShare from "./components/RequestShare";
 import NotFound from "./components/NotFound";
 import Keycloak from "keycloak-js";
 import {ConfigurationContext} from "./util/config";
+import Unauthorized from "./components/Unauthorized";
+import DropFile from "./components/DropFile";
 
-function AuthorizationBarrier(props) {
+function AuthRequired({children}) {
     const {keycloak} = useKeycloak();
 
-    useEffect(() => {
-        if(!keycloak.authenticated) keycloak.login();
-    }, [keycloak.authenticated])
+    if (!keycloak.authenticated) {
+        keycloak.login();
+        return null;
+    }
 
     const isAuthorized = keycloak.tokenParsed?.roles?.includes('member');
 
-    if(isAuthorized) {
-        return (
-            props.children
-        );
-    }
-    else {
-        return (
-            <Dialog open={true}>
-                <DialogTitle>Unauthorized</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        You dont have the permission to use this service.
-                    </DialogContentText>
-                </DialogContent>
-            </Dialog>
-        );
-    }
+    return isAuthorized ? children : <Unauthorized/>;
 }
 
 function App() {
@@ -69,65 +52,71 @@ function App() {
     const theme = React.useMemo(
         () =>
             createTheme({
-                palette: {
-                    mode: prefersDarkMode ? 'dark' : 'light'
+                    palette: {
+                        mode: prefersDarkMode ? 'dark' : 'light'
+                    }
                 }
-            }
-    ), [prefersDarkMode]);
+            ), [prefersDarkMode]);
 
-    if(!config) return null;
+    if (!config) return null;
 
     return (
         <ConfigurationContext.Provider value={config}>
-          <ReactKeycloakProvider authClient={keycloak} LoadingComponent={<React.Fragment />} initOptions={{
-            onLoad: '',
-            promiseType: 'native',
-            flow: 'standard',
-            pkceMethod: 'S256',
-            checkLoginIframe: false,
-          }}>
-              <ThemeProvider theme={theme}>
-                  <LocalizationProvider dateAdapter={DateAdapter}>
-                  <CssBaseline />
-                    <BrowserRouter>
-                        <Switch>
-                            <Route path={"/r/:id"}>
-                                <Container sx={{
-                                    marginTop: '4em',
-                                    marginBottom: '4em',
-                                }} maxWidth={"sm"}>
-                                    <RequestShare />
-                                </Container>
-                            </Route>
-                            <Route>
-                                <AuthorizationBarrier>
-                                    <DropFile>
-                                        <Container sx={{
-                                            marginTop: '4em',
-                                            marginBottom: '4em',
-                                        }} maxWidth={"sm"}>
-                                          <Switch>
-                                            <Route path={'/'} exact>
-                                              <ShareList />
-                                            </Route>
-                                            <Route path={'/add'}>
-                                              <AddShare />
-                                            </Route>
-                                            <Route>
-                                                <NotFound />
-                                            </Route>
-                                          </Switch>
-                                        </Container>
-                                    </DropFile>
-                                </AuthorizationBarrier>
-                            </Route>
-                        </Switch>
-                    </BrowserRouter>
-                  </LocalizationProvider>
-              </ThemeProvider>
-          </ReactKeycloakProvider>
+            <ReactKeycloakProvider authClient={keycloak} LoadingComponent={<React.Fragment/>} initOptions={{
+                onLoad: '',
+                promiseType: 'native',
+                flow: 'standard',
+                pkceMethod: 'S256',
+                checkLoginIframe: false,
+            }}>
+                <ThemeProvider theme={theme}>
+                    <LocalizationProvider dateAdapter={DateAdapter}>
+                        <CssBaseline/>
+                        <BrowserRouter>
+                            <DropFile/>
+                            <Container sx={{
+                                marginTop: '4em',
+                                marginBottom: '4em',
+                            }} maxWidth={"sm"}>
+                                <Routes>
+                                    <Route path={'/'} exact element={<AuthRequired><ShareList/></AuthRequired>}/>
+                                    <Route path={'/add'}>
+                                        <Route exact path="" element={
+                                            <AuthRequired>
+                                                <TypeSelection/>
+                                            </AuthRequired>
+                                        }/>
+                                        <Route path="link" element={
+                                            <AuthRequired>
+                                                <AddLink/>
+                                            </AuthRequired>
+                                        }/>
+                                        <Route path="file" element={
+                                            <AuthRequired>
+                                                <AddFile/>
+                                            </AuthRequired>
+                                        }/>
+                                        <Route path="request" element={
+                                            <AuthRequired>
+                                                <AddRequest/>
+                                            </AuthRequired>
+                                        }/>
+                                        <Route path="*" element={
+                                            <AuthRequired>
+                                                <NotFound/>
+                                            </AuthRequired>
+                                        }/>
+                                    </Route>
+                                    <Route path={"/r/:id"} element={<RequestShare/>}/>
+                                    <Route path={'*'} element={<NotFound/>}/>
+                                </Routes>
+                            </Container>
+                        </BrowserRouter>
+                    </LocalizationProvider>
+                </ThemeProvider>
+            </ReactKeycloakProvider>
         </ConfigurationContext.Provider>
-  );
+    );
 }
 
 export default App;
