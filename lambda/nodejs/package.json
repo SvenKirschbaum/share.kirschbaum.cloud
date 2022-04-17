@@ -14,7 +14,7 @@
     "class-transformer-validator": "0.9.1",
     "class-validator": "0.13.2",
     "cloudfront-log-parser": "1.2.0",
-    "moment": "2.29.2",
+    "moment": "2.29.3",
     "reflect-metadata": "0.1.13",
     "uuid": "8.3.2"
   },
