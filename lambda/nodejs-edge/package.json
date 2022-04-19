@@ -10,6 +10,6 @@
     "moment": "2.29.3"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.93"
+    "@types/aws-lambda": "8.10.94"
   }
 }
