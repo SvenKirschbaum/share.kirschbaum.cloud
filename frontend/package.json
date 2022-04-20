@@ -12,7 +12,7 @@
     "@mui/lab": "5.0.0-alpha.78",
     "@react-keycloak/web": "3.4.0",
     "axios": "0.26.1",
-    "http-proxy-middleware": "2.0.4",
+    "http-proxy-middleware": "2.0.5",
     "keycloak-js": "17.0.1",
     "moment": "2.29.3",
     "pretty-bytes": "6.0.0",
