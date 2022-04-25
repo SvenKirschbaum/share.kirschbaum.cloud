@@ -26,6 +26,7 @@ pull_request_rules:
       - or:
         - label=minor
         - label=patch
+        - label=maintenance
     actions:
       review:
   - name: assign pr
@@ -36,6 +37,7 @@ pull_request_rules:
         - and:
           - -label=minor
           - -label=patch
+          - -label=maintenance
     actions:
       assign:
         add_users:
