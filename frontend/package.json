@@ -7,17 +7,17 @@
     "@emotion/react": "11.9.0",
     "@emotion/styled": "11.8.1",
     "@fontsource/roboto": "4.5.5",
-    "@mui/material": "5.6.2",
+    "@mui/material": "5.6.3",
     "@mui/icons-material": "5.6.2",
-    "@mui/lab": "5.0.0-alpha.78",
+    "@mui/lab": "5.0.0-alpha.79",
     "@react-keycloak/web": "3.4.0",
-    "axios": "0.26.1",
+    "axios": "0.27.2",
     "http-proxy-middleware": "2.0.6",
     "keycloak-js": "18.0.0",
     "moment": "2.29.3",
     "pretty-bytes": "6.0.0",
-    "react": "18.0.0",
-    "react-dom": "18.0.0",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
     "react-router": "6.3.0",
     "react-router-dom": "6.3.0",
     "web-vitals": "2.1.4"
@@ -29,8 +29,8 @@
     "@testing-library/user-event": "14.1.1",
     "@types/jest": "27.4.1",
     "@types/node": "17.0.23",
-    "@types/react": "18.0.5",
-    "@types/react-dom": "18.0.1"
+    "@types/react": "18.0.8",
+    "@types/react-dom": "18.0.2"
   },
   "scripts": {
     "start": "react-scripts start",
