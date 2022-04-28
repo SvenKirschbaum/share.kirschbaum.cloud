@@ -20,7 +20,7 @@ export default class SharePipelineStack extends Stack {
         roleName: 'CloudshareDNSDelegationRole',
       },
       keycloak: {
-        url: 'https://id.elite12.de/auth',
+        url: 'https://id.elite12.de',
         realm: 'elite12',
         frontendClientId: 'cloud-share-frontend',
         backendClientId: 'cloud-share-backend',
@@ -41,7 +41,7 @@ export default class SharePipelineStack extends Stack {
           roleName: 'CloudshareDNSDelegationRole',
         },
         keycloak: {
-          url: 'https://id.elite12.de/auth',
+          url: 'https://id.elite12.de',
           realm: 'elite12',
           frontendClientId: 'cloud-share-frontend',
           backendClientId: 'cloud-share-backend',
