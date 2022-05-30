@@ -33,7 +33,7 @@
     "aws-cdk-ses-domain-identity": "2.0.0",
     "aws-sdk": "2.1145.0",
     "cdk-dia": "0.7.0",
-    "constructs": "10.1.21",
+    "constructs": "10.1.22",
     "esbuild": "0.14.42",
     "source-map-support": "0.5.21"
   }
