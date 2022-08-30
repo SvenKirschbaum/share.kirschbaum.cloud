@@ -26,7 +26,7 @@ import moment from "moment";
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import {Routes, useLocation, useNavigate} from "react-router";
-import {DateTimePicker} from "@mui/lab";
+import {DateTimePicker} from "@mui/x-date-pickers";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import UploadProgressDialog from "./dialogs/UploadProgressDialog";
@@ -178,7 +178,7 @@ export function AddRequest() {
 
     const {keycloak} = useKeycloak();
     const emailDisabled = useConfig('EMAIL_DISABLED');
-    
+
     const [shouldNotify, setShouldNotify] = useState(false);
 
     const canBeNotified = keycloak.tokenParsed.email && keycloak.tokenParsed.email_verified && !emailDisabled;
