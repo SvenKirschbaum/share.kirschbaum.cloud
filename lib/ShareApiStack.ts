@@ -20,7 +20,7 @@ import {
   AllowedMethods,
   CacheHeaderBehavior,
   CachePolicy,
-  Distribution,
+  Distribution, HttpVersion,
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
@@ -100,6 +100,7 @@ export default class ShareApiStack extends Stack {
           headerBehavior: CacheHeaderBehavior.allowList('Authorization', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'),
         }),
       },
+      httpVersion: HttpVersion.HTTP2_AND_3
     });
 
     if (domain && zone) {
