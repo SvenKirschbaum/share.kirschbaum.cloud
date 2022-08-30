@@ -80,10 +80,11 @@ export const lambdaHandler: CloudFrontRequestHandler = async function forwardSha
 
         const title = share.title.S;
         const fileName = share.fileName?.S;
+        const forceDownload = share.forceDownload?.BOOL;
 
         request.uri = `/${share.file.S}`;
         request.querystring = new URLSearchParams({
-            'response-content-disposition': `inline; filename="${fileName ?? title}"`,
+            'response-content-disposition': `${forceDownload ? 'attachment' : 'inline'}; filename="${fileName ?? title}"`,
             'response-expires': expiration.locale("en").utc().format(RFC2822_DATE_FORMAT)
         }).toString();
 
