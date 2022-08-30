@@ -11,8 +11,8 @@ import './App.css';
 import ShareList from "./components/ShareList";
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import {AddFile, AddRequest, AddLink, TypeSelection} from "./components/AddShare";
-import {LocalizationProvider} from "@mui/lab";
-import DateAdapter from '@mui/lab/AdapterMoment';
+import {LocalizationProvider} from "@mui/x-date-pickers";
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import RequestShare from "./components/RequestShare";
 import NotFound from "./components/NotFound";
@@ -70,7 +70,7 @@ function App() {
                 checkLoginIframe: false,
             }}>
                 <ThemeProvider theme={theme}>
-                    <LocalizationProvider dateAdapter={DateAdapter}>
+                    <LocalizationProvider dateAdapter={AdapterMoment}>
                         <CssBaseline/>
                         <BrowserRouter>
                             <DropFile/>
