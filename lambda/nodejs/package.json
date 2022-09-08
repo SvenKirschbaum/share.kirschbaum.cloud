@@ -9,7 +9,7 @@
     "@aws-sdk/client-sesv2": "3.163.0",
     "@aws-sdk/client-sfn": "3.163.0",
     "@aws-sdk/s3-request-presigner": "3.163.0",
-    "@middy/core": "2.5.7",
+    "@middy/core": "3.3.1",
     "class-transformer": "0.5.1",
     "class-transformer-validator": "0.9.1",
     "class-validator": "0.13.2",
