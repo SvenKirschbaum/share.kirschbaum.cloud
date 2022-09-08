@@ -16,7 +16,7 @@
     "cloudfront-log-parser": "1.2.0",
     "moment": "2.29.4",
     "reflect-metadata": "0.1.13",
-    "uuid": "8.3.2"
+    "uuid": "9.0.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.102",
