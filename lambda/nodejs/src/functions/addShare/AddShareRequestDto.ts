@@ -2,9 +2,7 @@ import {
     IsBoolean,
     IsDateString,
     IsIn,
-    IsNotEmpty,
-    IsNumber,
-    IsPositive,
+    IsNotEmpty, IsOptional,
     IsString,
     IsUrl,
     ValidateIf
@@ -36,4 +34,9 @@ export class AddShareRequestDto {
     @ValidateIf(object => object.type === 'FILE_REQUEST')
     @IsBoolean()
     notifyOnUpload: boolean = false;
+
+    @ValidateIf(object => object.type === 'FILE')
+    @IsBoolean()
+    @IsOptional()
+    forceDownload: boolean;
 }

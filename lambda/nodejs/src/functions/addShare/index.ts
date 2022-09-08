@@ -62,6 +62,9 @@ const lambdaHandler = async function addShareHandler(event: APIGatewayProxyEvent
                 },
                 fileName: {
                     S: requestDto.file.fileName
+                },
+                forceDownload: {
+                    BOOL: requestDto.forceDownload
                 }
             });
 

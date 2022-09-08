@@ -16,7 +16,7 @@ import {
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, Paper,
     TextField, Typography,
 } from "@mui/material";
-import {Link, Route} from "react-router-dom";
+import {Link} from "react-router-dom";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -25,12 +25,11 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import moment from "moment";
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
-import {Routes, useLocation, useNavigate} from "react-router";
+import {useLocation, useNavigate} from "react-router";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import UploadProgressDialog from "./dialogs/UploadProgressDialog";
-import NotFound from "./NotFound";
 import {useConfig} from "../util/config";
 import {useUpload} from "../util/upload";
 
@@ -122,6 +121,7 @@ export function AddFile() {
 
     const fileInput = useRef();
 
+    const [forceDownload, setForceDownload] = useState(false);
     const [suggestedTitle, setSuggestedTitle] = useState(undefined);
 
     const [showUpload, setShowUpload] = useState(false);
@@ -150,7 +150,8 @@ export function AddFile() {
                         fileName: fileInput.current.files[0].name,
                         fileSize: fileInput.current.files[0].size,
                         fileType: (fileInput.current.files[0].type || 'application/octet-stream')
-                    }
+                    },
+                    forceDownload
                 })}
                 onResponse={(res) => {
                     setShowUpload(true);
@@ -161,6 +162,9 @@ export function AddFile() {
                 }}
                 suggestedTitle={suggestedTitle}
             >
+                <FormGroup row>
+                    <FormControlLabel control={<Checkbox checked={forceDownload} onChange={(event) => setForceDownload(event.target.checked)} />} label="Force Download" />
+                </FormGroup>
                 <FormGroup row>
                     <Input type="file" disableUnderline={true} inputRef={fileInput} sx={{margin: '10px auto'}} onChange={onFileChange} />
                 </FormGroup>
