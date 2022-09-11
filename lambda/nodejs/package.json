@@ -4,11 +4,11 @@
   "dependencies": {
     "@aws-lambda-powertools/logger": "1.2.1",
     "@aws-lambda-powertools/tracer": "1.2.1",
-    "@aws-sdk/client-dynamodb": "3.163.0",
-    "@aws-sdk/client-s3": "3.163.0",
-    "@aws-sdk/client-sesv2": "3.163.0",
-    "@aws-sdk/client-sfn": "3.163.0",
-    "@aws-sdk/s3-request-presigner": "3.163.0",
+    "@aws-sdk/client-dynamodb": "3.168.0",
+    "@aws-sdk/client-s3": "3.168.0",
+    "@aws-sdk/client-sesv2": "3.168.0",
+    "@aws-sdk/client-sfn": "3.168.0",
+    "@aws-sdk/s3-request-presigner": "3.168.0",
     "@middy/core": "3.3.1",
     "class-transformer": "0.5.1",
     "class-transformer-validator": "0.9.1",
@@ -19,7 +19,7 @@
     "uuid": "9.0.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.102",
+    "@types/aws-lambda": "8.10.103",
     "@types/uuid": "8.3.4"
   }
 }
