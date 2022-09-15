@@ -22,7 +22,6 @@ import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import {useConfig} from "../util/config";
-import moment from 'moment';
 import Moment from 'react-moment';
 
 function ShareEntry(props) {
@@ -128,7 +127,7 @@ function ShareList() {
                         ))}
                         {shares.length === 0 &&
                             <ListItem>
-                                <ListItemText style={{textAlign: 'center'}}>Currently there are no active shares. LOL.</ListItemText>
+                                <ListItemText style={{textAlign: 'center'}}>Currently there are no active shares</ListItemText>
                             </ListItem>
                         }
                     </List>
