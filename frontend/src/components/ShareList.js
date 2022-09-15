@@ -1,16 +1,16 @@
 import React, {useEffect, useState} from "react";
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CircularProgress,
-    IconButton,
-    List,
-    ListItem,
-    ListItemIcon,
-    ListItemSecondaryAction,
-    ListItemText,
-} from "@mui/material";
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress,
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemSecondaryAction,
+  ListItemText, Typography,
+} from '@mui/material';
 import {Link} from "react-router-dom";
 
 import AddIcon from '@mui/icons-material/Add';
@@ -22,6 +22,7 @@ import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import {useConfig} from "../util/config";
+import Moment from 'react-moment';
 
 function ShareEntry(props) {
     const targetURL = window.location.protocol + '//' + window.location.host + (props.type === 'FILE_REQUEST' ? '/r/' : '/d/') + props.id;
@@ -38,13 +39,34 @@ function ShareEntry(props) {
                 {props.type === 'FILE_REQUEST' && <RequestFileIcon />}
             </ListItemIcon>
             <ListItemText
-                secondary={targetURL}
+                secondary={
+                  <>
+                    <div>{targetURL}</div>
+                    <Typography
+                      component={"div"}
+                      variant={"caption"}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        paddingRight: "1em",
+                        textAlign: "center",
+                        gap: "0.5em"
+                      }}
+                    >
+                      <div>
+                        Created: <Moment unix date={props.created} format={"DD.MM.YYYY HH:m"}></Moment>
+                      </div>
+                      <div>
+                        Expires: <Moment unix date={props.expire} format={"DD.MM.YYYY HH:m"}></Moment>
+                      </div>
+                    </Typography>
+                  </>
+                }
                 onClick={() => window.location.href = targetURL}
                 sx={{
                     '& .MuiListItemText-secondary': {
                         textOverflow: 'ellipsis',
                         overflow: 'hidden',
-                        direction: 'rtl',
                         cursor: 'pointer'
                     },
                     '& .MuiListItemText-primary': {
