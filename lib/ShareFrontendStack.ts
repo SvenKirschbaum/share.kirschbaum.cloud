@@ -1,8 +1,10 @@
-import {CfnOutput, Duration, RemovalPolicy, Stack, StackProps,} from 'aws-cdk-lib';
-import {Construct} from 'constructs';
-import {BlockPublicAccess, Bucket, BucketEncryption} from 'aws-cdk-lib/aws-s3';
-import {BucketDeployment, CacheControl, Source} from 'aws-cdk-lib/aws-s3-deployment';
-import {S3Origin} from 'aws-cdk-lib/aws-cloudfront-origins';
+import {
+  CfnOutput, Duration, RemovalPolicy, Stack, StackProps, Token,
+} from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
+import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import {
   CachePolicy,
   Distribution,
@@ -15,14 +17,15 @@ import {
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import * as route53 from 'aws-cdk-lib/aws-route53';
-import {CloudFrontTarget} from 'aws-cdk-lib/aws-route53-targets';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import {HostedZone} from 'aws-cdk-lib/aws-route53/lib/hosted-zone';
-import {Architecture, Runtime} from 'aws-cdk-lib/aws-lambda';
-import {Table} from 'aws-cdk-lib/aws-dynamodb';
+import { HostedZone } from 'aws-cdk-lib/aws-route53/lib/hosted-zone';
+import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import * as path from 'path';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import DefaultResponseHeadersPolicy from './util/DefaultResponseHeadersPolicy';
-import {Bundling} from './util/bundling/Bundling';
+import { Bundling } from './util/bundling/Bundling';
 
 export interface ShareFrontendStackProps extends StackProps {
     frontendDomain?: string,
@@ -89,6 +92,15 @@ export default class ShareFrontendStack extends Stack {
       ],
     });
 
+    // Workaround for Cross Stack References
+    // See: https://github.com/aws/aws-cdk/issues/19257
+    let parameter;
+    if (Token.isUnresolved(apiDomain)) {
+      parameter = new ssm.StringParameter(this, 'ApiDomainParameter', {
+        stringValue: apiDomain,
+      });
+    }
+
     new BucketDeployment(this, 'ConfigDeployment', {
       destinationBucket: this.frontendBucket,
       // Exclude everything not related to this deployment to prevent other files from being deleted
@@ -100,7 +112,7 @@ export default class ShareFrontendStack extends Stack {
           exclude: ['*', '!index.html'],
         }),
         Source.jsonData('config.json', {
-          API_URL: `https://${apiDomain}`,
+          API_URL: `https://${parameter?.stringValue ?? apiDomain}`,
           EMAIL_DISABLED: disableEmail,
           KEYCLOAK: {
             url: keycloakUrl,
@@ -163,7 +175,7 @@ export default class ShareFrontendStack extends Stack {
       logBucket,
       enableLogging: true,
 
-      httpVersion: HttpVersion.HTTP2_AND_3
+      httpVersion: HttpVersion.HTTP2_AND_3,
     });
 
     if (domain && zone) {
