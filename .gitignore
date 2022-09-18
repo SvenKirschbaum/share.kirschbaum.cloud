@@ -12,3 +12,4 @@ cdk.out
 *.iml
 /diagram.png.dot
 /.aws-sam
+/bin/dev.ts
