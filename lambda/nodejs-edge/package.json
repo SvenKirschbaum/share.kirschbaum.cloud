@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "dependencies": {
     "@aws-lambda-powertools/logger": "1.2.1",
-    "@aws-sdk/client-dynamodb": "3.168.0",
-    "@aws-sdk/client-s3": "3.168.0",
-    "@aws-sdk/client-secrets-manager": "3.168.0",
-    "@middy/core": "3.3.1",
+    "@aws-sdk/client-dynamodb": "3.172.0",
+    "@aws-sdk/client-s3": "3.171.0",
+    "@aws-sdk/client-secrets-manager": "3.171.0",
+    "@middy/core": "3.3.2",
     "moment": "2.29.4"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.103"
+    "@types/aws-lambda": "8.10.104"
   }
 }
