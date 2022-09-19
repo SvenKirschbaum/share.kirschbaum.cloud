@@ -5,13 +5,13 @@ import {AttributeValue, DynamoDBClient, PutItemCommand} from "@aws-sdk/client-dy
 import {transformAndValidateSync} from "class-transformer-validator";
 import {AddShareRequestDto} from "./AddShareRequestDto";
 import {getRandomId} from "./randomId";
-import moment = require("moment");
 import {uploadService} from "../../services/UploadService";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
 import middy from "@middy/core";
 import {tracer} from "../../services/Tracer";
 import {injectLambdaContext} from "@aws-lambda-powertools/logger";
 import {logger} from "../../services/Logger";
+import {DateTime} from "luxon";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
@@ -100,9 +100,9 @@ const lambdaHandler = async function addShareHandler(event: APIGatewayProxyEvent
             }
         }
 
-        const expirationDate = moment(requestDto.expires);
+        const expirationDate = DateTime.fromISO(requestDto.expires);
 
-        if(expirationDate.isBefore(moment())) {
+        if(expirationDate < DateTime.now()) {
             return {
                 statusCode: 422,
                 headers: {
@@ -132,10 +132,10 @@ const lambdaHandler = async function addShareHandler(event: APIGatewayProxyEvent
                         S: event.requestContext.authorizer?.jwt.claims.sub as string
                     },
                     'created': {
-                        N: moment().unix().toString()
+                        N: DateTime.now().toSeconds().toString()
                     },
                     'expire': {
-                        N: expirationDate.unix().toString()
+                        N: expirationDate.toSeconds().toString()
                     },
                     'title': {
                         S: requestDto.title

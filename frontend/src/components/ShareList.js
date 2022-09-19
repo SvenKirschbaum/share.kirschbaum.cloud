@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {
   Card,
   CardContent,
@@ -22,7 +22,7 @@ import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import {useConfig} from "../util/config";
-import Moment from 'react-moment';
+import {DateTime} from "luxon";
 
 function ShareEntry(props) {
     const targetURL = window.location.protocol + '//' + window.location.host + (props.type === 'FILE_REQUEST' ? '/r/' : '/d/') + props.id;
@@ -45,7 +45,7 @@ function ShareEntry(props) {
                     <Typography
                       component={"div"}
                       variant={"caption"}
-                      style={{
+                      sx={{
                         display: "flex",
                         justifyContent: "space-between",
                         paddingRight: "1em",
@@ -54,10 +54,10 @@ function ShareEntry(props) {
                       }}
                     >
                       <div>
-                        Created: <Moment unix date={props.created} format={"DD.MM.YYYY HH:m"}></Moment>
+                          Created: {useMemo(() => DateTime.fromISO(props.created).toLocaleString(DateTime.DATETIME_SHORT), [props.created])}
                       </div>
                       <div>
-                        Expires: <Moment unix date={props.expire} format={"DD.MM.YYYY HH:m"}></Moment>
+                          Expires: {useMemo(() => DateTime.fromISO(props.expire).toLocaleString(DateTime.DATETIME_SHORT), [props.expire])}
                       </div>
                     </Typography>
                   </>

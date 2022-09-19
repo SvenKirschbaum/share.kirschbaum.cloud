@@ -22,7 +22,6 @@ import React, {useCallback, useEffect, useRef, useState} from "react";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
-import moment from "moment";
 import {useKeycloak} from "@react-keycloak/web";
 import axios from "axios";
 import {useLocation, useNavigate} from "react-router";
@@ -32,6 +31,8 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import UploadProgressDialog from "./dialogs/UploadProgressDialog";
 import {useConfig} from "../util/config";
 import {useUpload} from "../util/upload";
+import {DateTime} from "luxon";
+import LuxonUtils from "@date-io/luxon";
 
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 const forwardURLPrefix = window.location.protocol + '//' + window.location.host + '/d/';
@@ -223,7 +224,7 @@ function BaseAddDialog(props) {
     const apiUrl = useConfig('API_URL');
 
     const [title, setTitle] = useState('');
-    const [expire, setExpire] = useState(moment().add(7, 'days'));
+    const [expire, setExpire] = useState(() => DateTime.now().plus({days: 7}));
 
     const [loading, setLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -239,7 +240,7 @@ function BaseAddDialog(props) {
 
     const onSave = () => {
         //Validate
-        if(!title || !expire.isValid() || (props.validate && !props.validate())) {
+        if(!title || !expire.isValid || (props.validate && !props.validate())) {
             //TODO: Feedback
             return;
         }
@@ -248,7 +249,7 @@ function BaseAddDialog(props) {
 
         axios.post(`${apiUrl}/add`, {
                 title,
-                expires: expire.toISOString(),
+                expires: expire.toISO(),
                 ...props.getRequestData()
             },
             {
@@ -285,7 +286,7 @@ function BaseAddDialog(props) {
                         <TextField label={'Title'} fullWidth margin="normal" variant="filled" value={title} onChange={(event => setTitle(event.target.value))}/>
                     </FormGroup>
                     <FormGroup row>
-                        <DateTimePicker renderInput={props => <TextField {...props} label={"Expiration Date"} fullWidth margin={"normal"} variant={"filled"} />} inputFormat={"MMMM Do YYYY HH:mm"} disablePast ampm={false} value={expire} onChange={setExpire} />
+                        <DateTimePicker renderInput={props => <TextField {...props} label={"Expiration Date"} fullWidth margin={"normal"} variant={"filled"} />} inputFormat={"fff"} disablePast value={expire} onChange={setExpire} />
                     </FormGroup>
                     {props.children}
                 </CardContent>

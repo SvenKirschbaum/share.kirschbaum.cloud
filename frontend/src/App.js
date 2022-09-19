@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ReactKeycloakProvider, useKeycloak} from "@react-keycloak/web";
 import {
     Container,
@@ -12,7 +12,6 @@ import ShareList from "./components/ShareList";
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import {AddFile, AddRequest, AddLink, TypeSelection} from "./components/AddShare";
 import {LocalizationProvider} from "@mui/x-date-pickers";
-import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import RequestShare from "./components/RequestShare";
 import NotFound from "./components/NotFound";
@@ -20,6 +19,8 @@ import Keycloak from "keycloak-js";
 import {ConfigurationContext} from "./util/config";
 import Unauthorized from "./components/Unauthorized";
 import DropFile from "./components/DropFile";
+import {AdapterLuxon} from "@mui/x-date-pickers/AdapterLuxon";
+import {DateTime} from "luxon";
 
 function AuthRequired({children}) {
     const {keycloak} = useKeycloak();
@@ -58,6 +59,8 @@ function App() {
                 }
             ), [prefersDarkMode]);
 
+    const locale = useMemo(() => DateTime.now().resolvedLocaleOptions().locale, []);
+
     if (!config) return null;
 
     return (
@@ -70,7 +73,7 @@ function App() {
                 checkLoginIframe: false,
             }}>
                 <ThemeProvider theme={theme}>
-                    <LocalizationProvider dateAdapter={AdapterMoment}>
+                    <LocalizationProvider dateAdapter={AdapterLuxon} adapterLocale={locale}>
                         <CssBaseline/>
                         <BrowserRouter>
                             <DropFile/>

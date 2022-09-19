@@ -14,12 +14,13 @@
     "class-transformer-validator": "0.9.1",
     "class-validator": "0.13.2",
     "cloudfront-log-parser": "1.2.0",
-    "moment": "2.29.4",
+    "luxon": "3.0.3",
     "reflect-metadata": "0.1.13",
     "uuid": "9.0.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.104",
+    "@types/luxon": "3.0.1",
     "@types/uuid": "8.3.4"
   }
 }

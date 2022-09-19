@@ -4,12 +4,12 @@ import {uploadService} from "../../services/UploadService";
 import {transformAndValidateSync} from "class-transformer-validator";
 import {CompleteUploadDto} from "./CompleteUploadDto";
 import {SendBulkEmailCommand, SESv2Client} from "@aws-sdk/client-sesv2";
-import moment = require("moment");
 import {tracer} from "../../services/Tracer";
 import middy from "@middy/core";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
 import {injectLambdaContext} from "@aws-lambda-powertools/logger";
 import {logger} from "../../services/Logger";
+import {DateTime} from "luxon";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 const ses = tracer.captureAWSv3Client(new SESv2Client({region: process.env.AWS_REGION}));
@@ -104,7 +104,7 @@ const lambdaHandler = async function completeUpload(event: APIGatewayProxyEventV
                                 TemplateData: JSON.stringify({
                                     'SHARE_TITLE': share.title.S,
                                     'SHARE_URL': `https://${process.env.EMAIL_DOMAIN}/d/${id}`,
-                                    'SHARE_EXPIRATION': moment.unix(Number(share.expire.N)).format("dddd, MMMM Do YYYY, HH:mm:ss")
+                                    'SHARE_EXPIRATION': DateTime.fromSeconds(Number(share.expire.N)).toLocaleString(DateTime.DATETIME_SHORT)
                                 })
                             },
                         }

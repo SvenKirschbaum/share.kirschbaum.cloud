@@ -3,12 +3,12 @@ import {
     DynamoDBClient,
     QueryCommand
 } from "@aws-sdk/client-dynamodb";
-import moment = require("moment");
 import middy from "@middy/core";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
 import {tracer} from "../../services/Tracer";
 import {injectLambdaContext} from "@aws-lambda-powertools/logger";
 import {logger} from "../../services/Logger";
+import {DateTime} from "luxon";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
@@ -54,14 +54,14 @@ const lambdaHandler = async function listSharesHandler(event: APIGatewayProxyEve
         }while (queryCommandOutput.LastEvaluatedKey);
 
         const shares = shareItems
-            .filter(value => moment.unix(Number(value.expire.N)).isAfter(moment()))
+            .filter(value => DateTime.fromSeconds(Number(value.expire.N)) > DateTime.now())
             .map(value => {
                 return {
                     id: value.PK.S?.replace('SHARE#', ''),
                     title: value.title.S,
                     type: value.type.S,
-                    created: value.created?.N,
-                    expire: value.expire.N,
+                    created: DateTime.fromSeconds(Number(value.created?.N)).toISO(),
+                    expire: DateTime.fromSeconds(Number(value.expire.N)).toISO(),
                     clicks: Object.entries(value.clicks.M!).reduce((result, [date, clickValue]) => {
                         result[date] = parseInt(clickValue.N!);
                         return result;

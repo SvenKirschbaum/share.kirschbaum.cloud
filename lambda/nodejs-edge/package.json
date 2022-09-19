@@ -7,9 +7,10 @@
     "@aws-sdk/client-s3": "3.171.0",
     "@aws-sdk/client-secrets-manager": "3.171.0",
     "@middy/core": "3.3.2",
-    "moment": "2.29.4"
+    "luxon": "3.0.3"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.104"
+    "@types/aws-lambda": "8.10.104",
+    "@types/luxon": "3.0.1"
   }
 }

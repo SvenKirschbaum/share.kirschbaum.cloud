@@ -3,7 +3,6 @@ import "reflect-metadata";
 import {APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
 import {DynamoDBClient, GetItemCommand, PutItemCommand} from "@aws-sdk/client-dynamodb";
 import {transformAndValidateSync} from "class-transformer-validator";
-import moment = require("moment");
 import {uploadService} from "../../services/UploadService";
 import FileInfo from "../../types/FileInfo";
 import middy from "@middy/core";
@@ -11,6 +10,7 @@ import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
 import {tracer} from "../../services/Tracer";
 import {injectLambdaContext} from "@aws-lambda-powertools/logger";
 import {logger} from "../../services/Logger";
+import {DateTime} from "luxon";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
@@ -52,9 +52,9 @@ const lambdaHandler = async function fullfillShareRequestHandler(event: APIGatew
             };
         }
 
-        const expiration = moment.unix(Number(share.expire.N));
+        const expiration = DateTime.fromSeconds(Number(share.expire.N));
 
-        if(expiration.isBefore(moment()) || share.type.S !== 'FILE_REQUEST') {
+        if(expiration < DateTime.now() || share.type.S !== 'FILE_REQUEST') {
             return {
                 statusCode: 404
             };

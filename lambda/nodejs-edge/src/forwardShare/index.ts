@@ -3,11 +3,11 @@ import {
     CloudFrontRequestResult
 } from "aws-lambda";
 import {DynamoDBClient, GetItemCommand} from "@aws-sdk/client-dynamodb";
-import moment = require("moment");
 import {CloudFrontRequestHandler} from "aws-lambda/trigger/cloudfront-request";
 import {response404, response500} from "./responses";
 import {injectLambdaContext, Logger} from "@aws-lambda-powertools/logger";
 import middy from "@middy/core";
+import {DateTime} from "luxon";
 
 const logger = new Logger();
 
@@ -19,7 +19,6 @@ function getDDB(region: string) {
 }
 
 const idRegex = /^\/d\/([a-zA-Z\d]{6})$/;
-const RFC2822_DATE_FORMAT = "ddd, DD MMM YYYY HH:mm:ss [GMT]";
 
 export const lambdaHandler: CloudFrontRequestHandler = async function forwardShareHandler(event: CloudFrontRequestEvent): Promise<CloudFrontRequestResult> {
     const request = event.Records[0].cf.request;
@@ -54,9 +53,9 @@ export const lambdaHandler: CloudFrontRequestHandler = async function forwardSha
             return response404;
         }
 
-        const expiration = moment.unix(Number(share.expire.N));
+        const expiration = DateTime.fromSeconds(Number(share.expire.N));
 
-        if(expiration.isBefore(moment()) || share.uploadId || share.type.S === 'FILE_REQUEST') {
+        if(expiration < DateTime.now() || share.uploadId || share.type.S === 'FILE_REQUEST') {
             return response404;
         }
 
@@ -66,7 +65,7 @@ export const lambdaHandler: CloudFrontRequestHandler = async function forwardSha
                 headers: {
                     'expires': [
                         {
-                            value: expiration.locale("en").utc().format(RFC2822_DATE_FORMAT)
+                            value: expiration.toRFC2822()
                         }
                     ],
                     'location': [
@@ -85,7 +84,7 @@ export const lambdaHandler: CloudFrontRequestHandler = async function forwardSha
         request.uri = `/${share.file.S}`;
         request.querystring = new URLSearchParams({
             'response-content-disposition': `${forceDownload ? 'attachment' : 'inline'}; filename="${fileName ?? title}"`,
-            'response-expires': expiration.locale("en").utc().format(RFC2822_DATE_FORMAT)
+            'response-expires': expiration.toRFC2822()
         }).toString();
 
         return request;
