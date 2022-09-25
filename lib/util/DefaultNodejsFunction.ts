@@ -19,7 +19,7 @@ export default class DefaultNodejsFunction extends NodejsFunction {
       code: Code.fromAsset('lambda', {
         exclude: ['nodejs/src', 'nodejs-edge'],
       }),
-      compatibleRuntimes: [Runtime.NODEJS_10_X, Runtime.NODEJS_12_X, Runtime.NODEJS_14_X],
+      compatibleRuntimes: [Runtime.NODEJS_14_X, Runtime.NODEJS_16_X],
     });
 
     super(scope, id, {
@@ -30,7 +30,7 @@ export default class DefaultNodejsFunction extends NodejsFunction {
           ...Object.keys(nodePackageJson.dependencies),
         ],
       },
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       architecture: Architecture.ARM_64,
       layers: [layer],
       logRetention: RetentionDays.TWO_WEEKS,

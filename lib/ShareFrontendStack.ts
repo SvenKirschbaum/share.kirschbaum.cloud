@@ -200,11 +200,11 @@ export default class ShareFrontendStack extends Stack {
     table: Table,
   ) {
     const forwardFunction = new experimental.EdgeFunction(this, 'ForwardShare', {
-      runtime: Runtime.NODEJS_14_X,
+      runtime: Runtime.NODEJS_16_X,
       handler: 'index.handler',
       code: Bundling.bundle({
         entry: path.resolve('lambda/nodejs-edge/src/forwardShare/index.ts'),
-        runtime: Runtime.NODEJS_14_X,
+        runtime: Runtime.NODEJS_16_X,
         architecture: Architecture.X86_64,
         depsLockFilePath: path.resolve('lambda/nodejs-edge/package-lock.json'),
         projectRoot: path.resolve('lambda/nodejs-edge/'),
