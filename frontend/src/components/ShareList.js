@@ -39,6 +39,7 @@ function ShareEntry(props) {
                 {props.type === 'FILE_REQUEST' && <RequestFileIcon />}
             </ListItemIcon>
             <ListItemText
+                secondaryTypographyProps={{component: 'div'}}
                 secondary={
                   <>
                     <div>{targetURL}</div>
