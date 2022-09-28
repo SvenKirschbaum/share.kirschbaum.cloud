@@ -5,13 +5,14 @@ import {GetObjectCommand, S3Client} from "@aws-sdk/client-s3";
 import {createGunzip} from "zlib";
 // @ts-ignore
 import CloudFrontParser from 'cloudfront-log-parser'
-import LogSubmittedEvent from "../../../types/LogSubmittedEvent";
-import {ClickData, ClickDataMap} from "../../../types/ClickData";
+import LogSubmittedEvent from "../types/LogSubmittedEvent";
+import {ClickData, ClickDataMap} from "../types/ClickData";
 import middy from "@middy/core";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
-import {tracer} from "../../../services/Tracer";
+import {tracer} from "../services/Tracer";
 import {injectLambdaContext} from "@aws-lambda-powertools/logger";
-import {logger} from "../../../services/Logger";
+import {logger} from "../services/Logger";
+import errorLogger from "@middy/error-logger";
 
 const s3 = tracer.captureAWSv3Client(new S3Client({ region: process.env.AWS_REGION }));
 
@@ -27,8 +28,9 @@ const lambdaHandler: Handler = async function processLogs(event: LogSubmittedEve
 
     const getObjectCommandOutput = await s3.send(getObjectCommand);
 
-    getObjectCommandOutput.Body
+    if(!getObjectCommandOutput.Body) throw new Error('No file Content');
 
+    // @ts-ignore
     for await (const data of getObjectCommandOutput.Body.pipe(createGunzip()).pipe(new CloudFrontParser())) {
         const match = data['cs-uri-stem'].match(pathRegex);
         if(match) {
@@ -46,7 +48,6 @@ const lambdaHandler: Handler = async function processLogs(event: LogSubmittedEve
         }
     }
 
-
     return Array.from(clickData.values());
 }
 
@@ -54,3 +55,4 @@ const lambdaHandler: Handler = async function processLogs(event: LogSubmittedEve
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
     .use(injectLambdaContext(logger))
+    .use(errorLogger())

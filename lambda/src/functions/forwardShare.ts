@@ -4,10 +4,10 @@ import {
 } from "aws-lambda";
 import {DynamoDBClient, GetItemCommand} from "@aws-sdk/client-dynamodb";
 import {CloudFrontRequestHandler} from "aws-lambda/trigger/cloudfront-request";
-import {response404, response500} from "./responses";
 import {injectLambdaContext, Logger} from "@aws-lambda-powertools/logger";
 import middy from "@middy/core";
 import {DateTime} from "luxon";
+import {response404, response500} from "../types/edgeResponses";
 
 const logger = new Logger();
 
@@ -95,5 +95,6 @@ export const lambdaHandler: CloudFrontRequestHandler = async function forwardSha
     }
 }
 
+//Not all normal middlewares will work in the cloudfront function context
 export const handler = middy(lambdaHandler)
     .use(injectLambdaContext(logger))

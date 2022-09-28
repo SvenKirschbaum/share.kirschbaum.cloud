@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://share.kirschbaum.cloud/schemas/FileInfoSchema.json",
+  "title": "FileInfo",
+  "type": "object",
+  "properties": {
+    "fileName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "fileSize": {
+      "type": "integer",
+      "exclusiveMinimum": 0
+    },
+    "fileType": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "fileName",
+    "fileSize",
+    "fileType"
+  ]
+}

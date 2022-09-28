@@ -1,0 +1,3 @@
+*.validator.js
+*.validator.d.ts
+*.interface.ts

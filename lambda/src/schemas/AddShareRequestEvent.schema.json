@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://share.kirschbaum.cloud/schemas/AddShareRequestEventSchema.json",
+  "title": "AddShareRequestEvent",
+  "type": "object",
+  "properties": {
+    "body": {
+      "$ref": "https://share.kirschbaum.cloud/schemas/AddShareRequestDTOSchema.json"
+    }
+  },
+  "required": [
+    "body"
+  ]
+}

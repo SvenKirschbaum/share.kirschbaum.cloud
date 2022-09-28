@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://share.kirschbaum.cloud/schemas/CompleteUploadRequestDTOSchema.json",
+  "title": "CompleteUploadRequestDTO",
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "parts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ETag": {
+            "type": "string",
+            "minLength": 1
+          },
+          "PartNumber": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "ETag",
+          "PartNumber"
+        ]
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "parts"
+  ]
+}

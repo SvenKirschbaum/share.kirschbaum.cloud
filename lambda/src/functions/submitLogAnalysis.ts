@@ -2,13 +2,14 @@ import {
     S3CreateEvent,
     S3Handler,
 } from "aws-lambda";
-import LogSubmittedEvent from "../../../types/LogSubmittedEvent";
+import LogSubmittedEvent from "../types/LogSubmittedEvent";
 import middy from "@middy/core";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
-import {tracer} from "../../../services/Tracer";
+import {tracer} from "../services/Tracer";
 import {SFNClient, StartExecutionCommand} from "@aws-sdk/client-sfn";
 import {injectLambdaContext} from "@aws-lambda-powertools/logger";
-import {logger} from "../../../services/Logger";
+import {logger} from "../services/Logger";
+import errorLogger from "@middy/error-logger";
 
 const sfnClient = tracer.captureAWSv3Client(new SFNClient({ region: process.env.AWS_REGION }));
 
@@ -36,3 +37,4 @@ const lambdaHandler: S3Handler = async function submitLogAnalysis(event: S3Creat
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
     .use(injectLambdaContext(logger))
+    .use(errorLogger())

@@ -1,34 +1,26 @@
 import {APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
 import {DynamoDBClient, DeleteItemCommand} from "@aws-sdk/client-dynamodb";
-import {tracer} from "../../services/Tracer";
-import middy from "@middy/core";
+import {tracer} from "../services/Tracer";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
 import {injectLambdaContext} from "@aws-lambda-powertools/logger";
-import {logger} from "../../services/Logger";
+import {logger} from "../services/Logger";
+
+import middy from "@middy/core";
+import httpErrorHandlerMiddleware from "@middy/http-error-handler";
+import errorLogger from "@middy/error-logger";
+import authorizationMiddleware from "../services/AuthorizationMiddleware";
+import httpHeaderNormalizer from "@middy/http-header-normalizer";
+import httpContentNegotiation from "@middy/http-content-negotiation";
+import httpResponseSerializerMiddleware from "@middy/http-response-serializer";
+import {BadRequest} from "http-errors";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
 const lambdaHandler = async function deleteShareHandler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
-    const roles = event.requestContext.authorizer?.jwt.claims.roles as string[] | undefined;
-
-    if(!roles?.includes('member')) {
-        return {
-            statusCode: 403
-        };
-    }
-
     const id = event.pathParameters?.id;
 
     if(!id) {
-        return {
-            statusCode: 400,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: 'The provided Id is invalid'
-            })
-        };
+        throw new BadRequest('The provided Id is invalid');
     }
 
     const deleteItemCommand = new DeleteItemCommand({
@@ -52,28 +44,29 @@ const lambdaHandler = async function deleteShareHandler(event: APIGatewayProxyEv
         }
     });
 
-    try {
-        await ddb.send(deleteItemCommand);
+    await ddb.send(deleteItemCommand);
 
-        return {
-            statusCode: 200
-        };
-    }
-    catch (err) {
-        tracer.addErrorAsMetadata(err as Error);
-        logger.error("Failed to process request", err as Error);
-        return {
-            statusCode: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: 'Internal error'
-            })
-        };
-    }
+    return {
+        statusCode: 200
+    };
 }
 
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
     .use(injectLambdaContext(logger))
+    .use(httpErrorHandlerMiddleware())
+    .use(errorLogger())
+    .use(authorizationMiddleware())
+    .use(httpHeaderNormalizer())
+    .use(httpContentNegotiation())
+    .use(
+        httpResponseSerializerMiddleware({
+            serializers: [
+                {
+                    regex: /^application\/json$/,
+                    serializer: ({ body }) => JSON.stringify(body)
+                }
+            ],
+            defaultContentType: 'application/json'
+        })
+    )

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://share.kirschbaum.cloud/schemas/CompleteUploadRequestEventSchema.json",
+  "title": "CompleteUploadRequestEvent",
+  "type": "object",
+  "properties": {
+    "body": {
+      "$ref": "https://share.kirschbaum.cloud/schemas/CompleteUploadRequestDTOSchema.json"
+    }
+  },
+  "required": [
+    "body"
+  ]
+}

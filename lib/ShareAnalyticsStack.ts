@@ -43,7 +43,7 @@ export default class ShareAnalyticsStack extends Stack {
 
   private createStateMachine(table: Table) {
     const parseLogFunction = new DefaultNodejsFunction(this, 'parseLogFunction', {
-      entry: 'lambda/nodejs/src/functions/analytics/parseLog/index.ts',
+      entry: 'lambda/src/functions/parseLog.ts',
       environment: {
         POWERTOOLS_SERVICE_NAME: 'share-analytics',
       },
@@ -118,7 +118,7 @@ export default class ShareAnalyticsStack extends Stack {
 
   private createSubmitResources() {
     const submitLogAnalysisFunction = new DefaultNodejsFunction(this, 'SubmitLogAnalysisFunction', {
-      entry: 'lambda/nodejs/src/functions/analytics/submitLogAnalysis/index.ts',
+      entry: 'lambda/src/functions/submitLogAnalysis.ts',
       environment: {
         LOG_PARSING_STATE_MACHINE: this.stateMachine.stateMachineArn,
         POWERTOOLS_SERVICE_NAME: 'share-analytics',

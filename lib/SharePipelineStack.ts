@@ -70,8 +70,7 @@ export default class SharePipelineStack extends Stack {
       installCommands: [
         'npm ci',
         '(cd frontend && npm ci)',
-        '(cd lambda/nodejs && npm ci)',
-        '(cd lambda/nodejs-edge && npm ci)',
+        '(cd lambda && npm ci --unsafe-perm)',
       ],
       commands: [
         '(cd frontend && npm run build)',
@@ -109,8 +108,7 @@ export default class SharePipelineStack extends Stack {
             commands: [
               'npm ci',
               '(cd frontend && npm ci)',
-              '(cd lambda/nodejs && npm ci)',
-              '(cd lambda/nodejs-edge && npm ci)',
+              '(cd lambda && npm ci --unsafe-perm)',
             ],
           },
           build: {

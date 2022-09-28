@@ -5,9 +5,10 @@ import {
 import {DeleteObjectCommand, S3Client} from "@aws-sdk/client-s3";
 import middy from "@middy/core";
 import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
-import {tracer} from "../../services/Tracer";
+import {tracer} from "../services/Tracer";
 import {injectLambdaContext} from "@aws-lambda-powertools/logger";
-import {logger} from "../../services/Logger";
+import {logger} from "../services/Logger";
+import errorLogger from "@middy/error-logger";
 
 const s3 = tracer.captureAWSv3Client(new S3Client({ region: process.env.AWS_REGION }));
 
@@ -31,7 +32,7 @@ const lambdaHandler: DynamoDBStreamHandler = async function onShareDeletion(even
     );
 }
 
-
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
     .use(injectLambdaContext(logger))
+    .use(errorLogger())

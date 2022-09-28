@@ -89,7 +89,7 @@ export default class ShareUtilStack extends Stack {
     // Filedeletion
     const deadLetterQueue = new Queue(this, 'deletionDeadLetterQueue');
     const onShareDeletionFunction = new DefaultNodejsFunction(this, 'onShareDeletion', {
-      entry: 'lambda/nodejs/src/functions/onShareDeletion/index.ts',
+      entry: 'lambda/src/functions/onShareDeletion.ts',
       environment: {
         FILE_BUCKET: storageBucket.bucketName,
         POWERTOOLS_SERVICE_NAME: 'share-deletion',

@@ -100,7 +100,7 @@ export default class ShareApiStack extends Stack {
           headerBehavior: CacheHeaderBehavior.allowList('Authorization', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'),
         }),
       },
-      httpVersion: HttpVersion.HTTP2_AND_3
+      httpVersion: HttpVersion.HTTP2_AND_3,
     });
 
     if (domain && zone) {
@@ -134,7 +134,7 @@ export default class ShareApiStack extends Stack {
     }
 
     const addShareFunction = new DefaultNodejsFunction(this, 'AddShare', {
-      entry: 'lambda/nodejs/src/functions/addShare/index.ts',
+      entry: 'lambda/src/functions/addShare.ts',
       environment: defaultLambdaEnvironment,
       timeout: Duration.seconds(15),
     });
@@ -149,7 +149,7 @@ export default class ShareApiStack extends Stack {
     });
 
     const completeUploadFunction = new DefaultNodejsFunction(this, 'CompleteUpload', {
-      entry: 'lambda/nodejs/src/functions/completeUpload/index.ts',
+      entry: 'lambda/src/functions/completeUpload.ts',
       environment: defaultLambdaEnvironment,
       timeout: Duration.seconds(15),
     });
@@ -177,7 +177,7 @@ export default class ShareApiStack extends Stack {
     });
 
     const listSharesFunction = new DefaultNodejsFunction(this, 'ListShares', {
-      entry: 'lambda/nodejs/src/functions/listShares/index.ts',
+      entry: 'lambda/src/functions/listShares.ts',
       environment: defaultLambdaEnvironment,
     });
     table.grantReadData(listSharesFunction);
@@ -190,7 +190,7 @@ export default class ShareApiStack extends Stack {
     });
 
     const deleteShareFunction = new DefaultNodejsFunction(this, 'DeleteShare', {
-      entry: 'lambda/nodejs/src/functions/deleteShare/index.ts',
+      entry: 'lambda/src/functions/deleteShare.ts',
       environment: defaultLambdaEnvironment,
     });
     table.grantWriteData(deleteShareFunction);
@@ -203,7 +203,7 @@ export default class ShareApiStack extends Stack {
     });
 
     const fullfillShareRequestFunction = new DefaultNodejsFunction(this, 'FullfillShareRequest', {
-      entry: 'lambda/nodejs/src/functions/fullfillShareRequest/index.ts',
+      entry: 'lambda/src/functions/fullfillShareRequest.ts',
       environment: defaultLambdaEnvironment,
     });
     table.grantReadWriteData(fullfillShareRequestFunction);

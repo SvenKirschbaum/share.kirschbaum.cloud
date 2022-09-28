@@ -203,11 +203,11 @@ export default class ShareFrontendStack extends Stack {
       runtime: Runtime.NODEJS_16_X,
       handler: 'index.handler',
       code: Bundling.bundle({
-        entry: path.resolve('lambda/nodejs-edge/src/forwardShare/index.ts'),
+        entry: path.resolve('lambda/src/functions/forwardShare.ts'),
         runtime: Runtime.NODEJS_16_X,
         architecture: Architecture.X86_64,
-        depsLockFilePath: path.resolve('lambda/nodejs-edge/package-lock.json'),
-        projectRoot: path.resolve('lambda/nodejs-edge/'),
+        depsLockFilePath: path.resolve('lambda/package-lock.json'),
+        projectRoot: path.resolve('lambda/'),
       }),
     });
     table.grantReadData(forwardFunction);
