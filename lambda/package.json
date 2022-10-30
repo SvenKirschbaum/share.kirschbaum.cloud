@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.108",
-    "@types/http-errors": "1.8.2",
+    "@types/http-errors": "2.0.0",
     "@types/luxon": "3.0.2",
     "@types/uuid": "8.3.4",
     "ajv": "8.11.0",
