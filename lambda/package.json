@@ -2,13 +2,13 @@
   "name": "share-lambda",
   "version": "1.0.0",
   "dependencies": {
-    "@aws-lambda-powertools/logger": "1.4.0",
-    "@aws-lambda-powertools/tracer": "1.4.0",
-    "@aws-sdk/client-dynamodb": "3.204.0",
-    "@aws-sdk/client-s3": "3.204.0",
-    "@aws-sdk/client-sesv2": "3.204.0",
-    "@aws-sdk/client-sfn": "3.204.0",
-    "@aws-sdk/s3-request-presigner": "3.204.0",
+    "@aws-lambda-powertools/logger": "1.4.1",
+    "@aws-lambda-powertools/tracer": "1.4.1",
+    "@aws-sdk/client-dynamodb": "3.210.0",
+    "@aws-sdk/client-s3": "3.210.0",
+    "@aws-sdk/client-sesv2": "3.210.0",
+    "@aws-sdk/client-sfn": "3.210.0",
+    "@aws-sdk/s3-request-presigner": "3.210.0",
     "@middy/core": "3.6.2",
     "@middy/http-content-negotiation": "3.6.2",
     "@middy/http-header-normalizer": "3.6.2",
@@ -27,11 +27,11 @@
     "@types/http-errors": "2.0.1",
     "@types/luxon": "3.1.0",
     "@types/uuid": "8.3.4",
-    "ajv": "8.11.0",
+    "ajv": "8.11.2",
     "ajv-formats": "2.1.1",
     "glob": "8.0.3",
     "json-schema-to-typescript": "11.0.2",
-    "typescript": "4.8.4"
+    "typescript": "4.9.3"
   },
   "scripts": {
     "postinstall": "node scripts/build-schemas.js"
