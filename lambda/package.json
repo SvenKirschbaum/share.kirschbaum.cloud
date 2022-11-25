@@ -16,7 +16,7 @@
     "@middy/http-error-handler": "3.6.2",
     "@middy/http-response-serializer": "3.6.2",
     "@middy/validator": "3.6.2",
-    "@middy/error-logger": "3.6.2",
+    "@middy/error-logger": "4.0.0",
     "cloudfront-log-parser": "1.2.0",
     "http-errors": "2.0.0",
     "luxon": "3.1.0",
