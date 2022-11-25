@@ -11,7 +11,7 @@
     "@aws-sdk/s3-request-presigner": "3.213.0",
     "@middy/core": "3.6.2",
     "@middy/http-content-negotiation": "3.6.2",
-    "@middy/http-header-normalizer": "3.6.2",
+    "@middy/http-header-normalizer": "4.0.0",
     "@middy/http-json-body-parser": "3.6.2",
     "@middy/http-error-handler": "3.6.2",
     "@middy/http-response-serializer": "3.6.2",
