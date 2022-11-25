@@ -9,7 +9,7 @@
     "@aws-sdk/client-sesv2": "3.213.0",
     "@aws-sdk/client-sfn": "3.214.0",
     "@aws-sdk/s3-request-presigner": "3.213.0",
-    "@middy/core": "3.6.2",
+    "@middy/core": "4.0.0",
     "@middy/http-content-negotiation": "3.6.2",
     "@middy/http-header-normalizer": "3.6.2",
     "@middy/http-json-body-parser": "3.6.2",
