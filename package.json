@@ -13,8 +13,8 @@
   "devDependencies": {
     "@types/jest": "29.2.3",
     "@types/node": "18.11.9",
-    "@typescript-eslint/eslint-plugin": "5.43.0",
-    "@typescript-eslint/parser": "5.43.0",
+    "@typescript-eslint/eslint-plugin": "5.44.0",
+    "@typescript-eslint/parser": "5.44.0",
     "aws-cdk": "2.51.1",
     "chokidar": "3.5.3",
     "eslint": "8.28.0",
@@ -31,10 +31,10 @@
     "@aws-cdk/aws-apigatewayv2-integrations-alpha": "2.18.0-alpha.0",
     "aws-cdk-lib": "2.51.1",
     "aws-cdk-ses-domain-identity": "2.0.0",
-    "aws-sdk": "2.1258.0",
-    "cdk-dia": "0.7.0",
-    "constructs": "10.1.165",
-    "esbuild": "0.15.14",
+    "aws-sdk": "2.1261.0",
+    "cdk-dia": "0.8.0",
+    "constructs": "10.1.171",
+    "esbuild": "0.15.15",
     "source-map-support": "0.5.21"
   }
 }
