@@ -2,8 +2,8 @@
   "name": "share-lambda",
   "version": "1.0.0",
   "dependencies": {
-    "@aws-lambda-powertools/logger": "1.5.0",
-    "@aws-lambda-powertools/tracer": "1.5.0",
+    "@aws-lambda-powertools/logger": "1.5.1",
+    "@aws-lambda-powertools/tracer": "1.5.1",
     "@aws-sdk/client-dynamodb": "3.245.0",
     "@aws-sdk/client-s3": "3.245.0",
     "@aws-sdk/client-sesv2": "3.245.0",
@@ -29,7 +29,7 @@
     "@types/uuid": "9.0.0",
     "ajv": "8.12.0",
     "ajv-formats": "2.1.1",
-    "glob": "8.0.3",
+    "glob": "8.1.0",
     "json-schema-to-typescript": "11.0.2",
     "typescript": "4.9.4"
   },
