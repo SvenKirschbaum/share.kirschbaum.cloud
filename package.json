@@ -12,15 +12,15 @@
   },
   "devDependencies": {
     "@types/jest": "29.4.0",
-    "@types/node": "18.11.19",
-    "@typescript-eslint/eslint-plugin": "5.50.0",
-    "@typescript-eslint/parser": "5.50.0",
-    "aws-cdk": "2.63.2",
+    "@types/node": "18.13.0",
+    "@typescript-eslint/eslint-plugin": "5.51.0",
+    "@typescript-eslint/parser": "5.51.0",
+    "aws-cdk": "2.64.0",
     "chokidar": "3.5.3",
-    "eslint": "8.33.0",
+    "eslint": "8.34.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.27.5",
-    "jest": "29.4.1",
+    "jest": "29.4.2",
     "ts-jest": "29.0.5",
     "ts-node": "10.9.1",
     "typescript": "4.9.5"
@@ -29,12 +29,12 @@
     "@aws-cdk/aws-apigatewayv2-alpha": "2.18.0-alpha.0",
     "@aws-cdk/aws-apigatewayv2-authorizers-alpha": "2.18.0-alpha.0",
     "@aws-cdk/aws-apigatewayv2-integrations-alpha": "2.18.0-alpha.0",
-    "aws-cdk-lib": "2.63.2",
+    "aws-cdk-lib": "2.64.0",
     "aws-cdk-ses-domain-identity": "2.0.0",
-    "aws-sdk": "2.1309.0",
+    "aws-sdk": "2.1313.0",
     "cdk-dia": "0.9.0",
-    "constructs": "10.1.241",
-    "esbuild": "0.17.5",
+    "constructs": "10.1.248",
+    "esbuild": "0.17.7",
     "source-map-support": "0.5.21"
   }
 }
