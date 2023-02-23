@@ -30,7 +30,7 @@
     "ajv": "8.12.0",
     "ajv-formats": "2.1.1",
     "glob": "8.1.0",
-    "json-schema-to-typescript": "11.0.3",
+    "json-schema-to-typescript": "12.0.0",
     "typescript": "4.9.5"
   },
   "scripts": {
