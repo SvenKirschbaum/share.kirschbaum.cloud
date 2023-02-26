@@ -161,6 +161,9 @@ function* uploadWorker(chan) {
                 }
             });
 
+            //Force progress complete
+            emitProgress({partNumber, loaded: end-start})
+
             //Put result back into state
             yield put(completedPart({
                 shareId,

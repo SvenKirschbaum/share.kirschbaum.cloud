@@ -21,7 +21,7 @@ export default configureStore({
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({
         serializableCheck: {
             //The file attribute is only included for saga behavior, and not used in reducers
-            ignoredActionPaths: ['payload.file', 'meta.arg.rawFile']
+            ignoredActionPaths: ['payload.file', /^meta\.arg\.\d+\.rawFile$/]
         }
     }).concat([sagaMiddleware])
 })

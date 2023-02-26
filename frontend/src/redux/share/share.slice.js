@@ -6,7 +6,6 @@ const shareSlice = createSlice({
     name: 'shares',
     initialState: {
         add: {
-            id: null,
             state: loadingState.idle,
             error: null
         },
@@ -16,7 +15,6 @@ const shareSlice = createSlice({
     },
     reducers: {
         resetAdd(state, action) {
-            state.add.id = null;
             state.add.state = loadingState.idle;
             state.add.error = null;
         },
@@ -69,14 +67,16 @@ const shareSlice = createSlice({
             })
             .addCase(addShare.fulfilled, (state, action) => {
                 state.add.state = loadingState.complete;
-                state.add.id = action.payload.id;
-                state.shares.push({
-                    id: action.payload.id,
-                    title: action.meta.arg.title,
-                    type: action.meta.arg.type,
-                    created: action.payload.created,
-                    expire: action.meta.arg.expires,
-                    clicks: {}
+
+                action.payload.forEach((p) => {
+                    state.shares.push({
+                        id: p.id,
+                        title: p.title,
+                        type: p.type,
+                        created: p.created,
+                        expire: p.expires,
+                        clicks: {}
+                    });
                 });
             })
             .addCase(addShare.rejected, (state, action) => {

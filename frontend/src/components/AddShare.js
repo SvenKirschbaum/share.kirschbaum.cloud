@@ -140,23 +140,44 @@ export function AddFile() {
         <BaseAddDialog
             title={"Add File"}
             validate={() => fileInput.current.files[0]}
-            getActionData={() => ({
-                type: 'FILE',
-                file: {
-                    fileName: fileInput.current.files[0].name,
-                    fileSize: fileInput.current.files[0].size,
-                    fileType: (fileInput.current.files[0].type || 'application/octet-stream')
-                },
-                rawFile: fileInput.current.files[0],
-                forceDownload
-            })}
+            disableTitle={fileInput.current?.files?.length > 1}
+            getActionData={() => {
+                if(fileInput.current.files.length > 1) {
+                    const actionData = [];
+                    for (const file of fileInput.current.files) {
+                        actionData.push({
+                            type: 'FILE',
+                            title: file.name,
+                            file: {
+                                fileName: file.name,
+                                fileSize: file.size,
+                                fileType: (file.type || 'application/octet-stream')
+                            },
+                            rawFile: file,
+                            forceDownload
+                        });
+                    }
+                    return actionData;
+                } else {
+                    return {
+                        type: 'FILE',
+                        file: {
+                            fileName: fileInput.current.files[0].name,
+                            fileSize: fileInput.current.files[0].size,
+                            fileType: (fileInput.current.files[0].type || 'application/octet-stream')
+                        },
+                        rawFile: fileInput.current.files[0],
+                        forceDownload
+                    }
+                }
+            }}
             suggestedTitle={suggestedTitle}
         >
             <FormGroup row>
                 <FormControlLabel control={<Checkbox checked={forceDownload} onChange={(event) => setForceDownload(event.target.checked)} />} label="Force Download" />
             </FormGroup>
             <FormGroup row>
-                <Input type="file" disableUnderline={true} inputRef={fileInput} sx={{margin: '10px auto'}} onChange={onFileChange} />
+                <Input type="file" disableUnderline={true} inputRef={fileInput} sx={{margin: '10px auto'}} onChange={onFileChange} inputProps={{multiple: true}} />
             </FormGroup>
         </BaseAddDialog>
     );
@@ -226,11 +247,20 @@ function BaseAddDialog(props) {
             return;
         }
 
-        dispatch(addShare({
-            title,
-            expires: expire.toISO(),
-            ...props.getActionData()
-        }));
+        const actionData = props.getActionData()
+
+        if (Array.isArray(actionData)) {
+            dispatch(addShare(actionData.map((d) => ({
+                expires: expire.toISO(),
+                ...d
+            }))));
+        } else {
+            dispatch(addShare([{
+                title,
+                expires: expire.toISO(),
+                ...props.getActionData()
+            }]));
+        }
     }
 
     return (
@@ -239,7 +269,7 @@ function BaseAddDialog(props) {
                 <CardHeader title={props.title} />
                 <CardContent>
                     <FormGroup row>
-                        <TextField label={'Title'} fullWidth margin="normal" variant="filled" value={title} onChange={(event => setTitle(event.target.value))}/>
+                        <TextField label={'Title'} fullWidth margin="normal" variant="filled" value={title} onChange={(event => setTitle(event.target.value))} disabled={props.disableTitle}/>
                     </FormGroup>
                     <FormGroup row>
                         <DateTimePicker renderInput={props => <TextField {...props} label={"Expiration Date"} fullWidth margin={"normal"} variant={"filled"} />} inputFormat={"fff"} disablePast value={expire} onChange={setExpire} />
