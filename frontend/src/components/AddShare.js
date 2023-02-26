@@ -22,21 +22,20 @@ import React, {useCallback, useEffect, useRef, useState} from "react";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
-import {useKeycloak} from "@react-keycloak/web";
-import axios from "axios";
 import {useLocation, useNavigate} from "react-router";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import UploadProgressDialog from "./dialogs/UploadProgressDialog";
-import {useConfig} from "../util/config";
-import {useUpload} from "../util/upload";
 import {DateTime} from "luxon";
-import LuxonUtils from "@date-io/luxon";
+import {useDispatch, useSelector} from "react-redux";
+import {resetAdd} from "../redux/share/share.slice";
+import {loadingState} from "../redux/util";
+import {selectProfile} from "../redux/authentication/authentication.selector";
+import {selectConfig} from "../redux/config/config.selector";
+import {addShare} from "../redux/share/share.action";
+import {selectShareAddError, selectShareAddState} from "../redux/share/share.selector";
 
 const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
-const forwardURLPrefix = window.location.protocol + '//' + window.location.host + '/d/';
-const requestURLPrefix = window.location.protocol + '//' + window.location.host + '/r/';
 
 export function TypeSelection() {
     return (
@@ -104,7 +103,7 @@ export function AddLink() {
         <BaseAddDialog
             title={"Add Link"}
             validate={() => url && !urlInputError}
-            getRequestData={() => ({
+            getActionData={() => ({
                 type: 'LINK',
                 link: url
             })}
@@ -125,9 +124,6 @@ export function AddFile() {
     const [forceDownload, setForceDownload] = useState(false);
     const [suggestedTitle, setSuggestedTitle] = useState(undefined);
 
-    const [showUpload, setShowUpload] = useState(false);
-    const [uploadState, startUpload] = useUpload();
-
     //Set file from location state
     useEffect(() => {
         if(location.state && fileInput.current) {
@@ -141,70 +137,46 @@ export function AddFile() {
     }
 
     return (
-        <React.Fragment>
-            <BaseAddDialog
-                title={"Add File"}
-                validate={() => fileInput.current.files[0]}
-                getRequestData={() => ({
-                    type: 'FILE',
-                    file: {
-                        fileName: fileInput.current.files[0].name,
-                        fileSize: fileInput.current.files[0].size,
-                        fileType: (fileInput.current.files[0].type || 'application/octet-stream')
-                    },
-                    forceDownload
-                })}
-                onResponse={(res) => {
-                    setShowUpload(true);
-                    return startUpload(res.data.shareId, fileInput.current.files[0], res.data.uploadUrls)
-                        .finally(() => {
-                            setShowUpload(false);
-                        })
-                }}
-                suggestedTitle={suggestedTitle}
-            >
-                <FormGroup row>
-                    <FormControlLabel control={<Checkbox checked={forceDownload} onChange={(event) => setForceDownload(event.target.checked)} />} label="Force Download" />
-                </FormGroup>
-                <FormGroup row>
-                    <Input type="file" disableUnderline={true} inputRef={fileInput} sx={{margin: '10px auto'}} onChange={onFileChange} />
-                </FormGroup>
-            </BaseAddDialog>
-            <UploadProgressDialog
-                open={showUpload}
-                uploadProgress={uploadState.progress}
-                uploadSpeedBPS={uploadState.speed}
-            />
-        </React.Fragment>
+        <BaseAddDialog
+            title={"Add File"}
+            validate={() => fileInput.current.files[0]}
+            getActionData={() => ({
+                type: 'FILE',
+                file: {
+                    fileName: fileInput.current.files[0].name,
+                    fileSize: fileInput.current.files[0].size,
+                    fileType: (fileInput.current.files[0].type || 'application/octet-stream')
+                },
+                rawFile: fileInput.current.files[0],
+                forceDownload
+            })}
+            suggestedTitle={suggestedTitle}
+        >
+            <FormGroup row>
+                <FormControlLabel control={<Checkbox checked={forceDownload} onChange={(event) => setForceDownload(event.target.checked)} />} label="Force Download" />
+            </FormGroup>
+            <FormGroup row>
+                <Input type="file" disableUnderline={true} inputRef={fileInput} sx={{margin: '10px auto'}} onChange={onFileChange} />
+            </FormGroup>
+        </BaseAddDialog>
     );
 }
 
 export function AddRequest() {
-
-    const {keycloak} = useKeycloak();
-    const emailDisabled = useConfig('EMAIL_DISABLED');
+    const config = useSelector(selectConfig);
+    const profile = useSelector(selectProfile);
 
     const [shouldNotify, setShouldNotify] = useState(false);
 
-    const canBeNotified = keycloak.tokenParsed.email && keycloak.tokenParsed.email_verified && !emailDisabled;
+    const canBeNotified = profile.email && profile.email_verified && !config.EMAIL_DISABLED;
 
     return (
         <BaseAddDialog
             title={"Add Request"}
-            ignoreClipboard={true}
-            getRequestData={() => ({
+            getActionData={() => ({
                 type: 'FILE_REQUEST',
                 notifyOnUpload: shouldNotify
             })}
-            successMessage={
-                (props) =>
-                    <React.Fragment>
-                        You can forward the following link to request a fileupload: <a href={requestURLPrefix + props.addedId}>{requestURLPrefix + props.addedId}</a>
-                    </React.Fragment>
-            }
-            onResponse={async (res) => {
-                navigator.clipboard.writeText(requestURLPrefix + res.data.shareId).then();
-            }}
         >
             <FormControlLabel disabled={!canBeNotified} checked={shouldNotify} onChange={() => setShouldNotify(!shouldNotify)} control={<Checkbox />} label={"Notify me once the request has been completed"} />
             <Divider sx={{
@@ -219,24 +191,33 @@ export function AddRequest() {
 }
 
 function BaseAddDialog(props) {
-    const {keycloak} = useKeycloak();
     const navigate = useNavigate();
-    const apiUrl = useConfig('API_URL');
+    const dispatch = useDispatch();
 
     const [title, setTitle] = useState('');
     const [expire, setExpire] = useState(() => DateTime.now().plus({days: 7}));
 
-    const [loading, setLoading] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
+    const loadState = useSelector(selectShareAddState);
+    const errorMessage = useSelector(selectShareAddError);
 
-    const [showError, setShowError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-
-    const [addedId, setAddedId] = useState();
+    const prevSuggestedTitleRef = useRef();
 
     useEffect(() => {
-        if(!title && props.suggestedTitle) setTitle(props.suggestedTitle)
-    }, [props.suggestedTitle])
+        if((!title && props.suggestedTitle) || title === prevSuggestedTitleRef.current) setTitle(props.suggestedTitle)
+        prevSuggestedTitleRef.current = props.suggestedTitle;
+    }, [title, props.suggestedTitle])
+
+    //Reset async adding state
+    useEffect(() => () => {
+        dispatch(resetAdd());
+    }, [dispatch]);
+
+    //Navigate to start page if a file has been added
+    useEffect(() => {
+        if(loadState === loadingState.complete) {
+            navigate('/');
+        }
+    }, [navigate, loadState]);
 
     const onSave = () => {
         //Validate
@@ -245,36 +226,11 @@ function BaseAddDialog(props) {
             return;
         }
 
-        setLoading(true);
-
-        axios.post(`${apiUrl}/add`, {
-                title,
-                expires: expire.toISO(),
-                ...props.getRequestData()
-            },
-            {
-                headers: {
-                    Authorization: keycloak.token
-                }
-            }
-        )
-        .then(async res => {
-            setAddedId(res.data.shareId);
-
-            if (props.onResponse) {
-                await props.onResponse(res)
-            }
-
-            if(!props.ignoreClipboard) navigator.clipboard.writeText(forwardURLPrefix + res.data.shareId).then();
-            setShowSuccess(true);
-        })
-        .finally(() => {
-            setLoading(false);
-        })
-        .catch(error => {
-            setErrorMessage(error.response?.message || error.message);
-            setShowError(true);
-        })
+        dispatch(addShare({
+            title,
+            expires: expire.toISO(),
+            ...props.getActionData()
+        }));
     }
 
     return (
@@ -296,28 +252,13 @@ function BaseAddDialog(props) {
                     <Fab color="error" size={"small"} to={'/add'} component={Link}>
                         <ArrowBackIcon />
                     </Fab>
-                    { loading && <CircularProgress /> }
+                    { loadState === loadingState.pending && <CircularProgress /> }
                     <Button variant={"contained"} color={'primary'} onClick={onSave}>Save</Button>
                 </CardActions>
             </Card>
             <Dialog
-                open={showSuccess}
-                onClose={event => navigate('/')}
-                sx={{
-                    textAlign: 'center'
-                }}
-            >
-                <DialogTitle>Share successfully added</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>{props.successMessage ? props.successMessage({addedId}) : <React.Fragment>Your Share is accessible via the following Link: <a href={forwardURLPrefix + addedId}>{forwardURLPrefix + addedId}</a></React.Fragment>}</DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={event => navigate('/')} color={"primary"} variant={"contained"}>Ok</Button>
-                </DialogActions>
-            </Dialog>
-            <Dialog
-                open={showError}
-                onClose={() => setShowError(false)}
+                open={loadState === loadingState.failed}
+                onClose={() => dispatch(resetAdd())}
                 sx={{
                     textAlign: 'center'
                 }}
@@ -327,7 +268,7 @@ function BaseAddDialog(props) {
                     <DialogContentText>{errorMessage}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setShowError(false)} color={"primary"} variant={"contained"}>Ok</Button>
+                    <Button onClick={() => dispatch(resetAdd())} color={"primary"} variant={"contained"}>Ok</Button>
                 </DialogActions>
             </Dialog>
         </React.Fragment>

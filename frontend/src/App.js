@@ -1,5 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {ReactKeycloakProvider, useKeycloak} from "@react-keycloak/web";
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {
     Container,
     CssBaseline,
@@ -15,63 +14,87 @@ import {LocalizationProvider} from "@mui/x-date-pickers";
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import RequestShare from "./components/RequestShare";
 import NotFound from "./components/NotFound";
-import Keycloak from "keycloak-js";
-import {ConfigurationContext} from "./util/config";
 import Unauthorized from "./components/Unauthorized";
 import DropFile from "./components/DropFile";
 import {AdapterLuxon} from "@mui/x-date-pickers/AdapterLuxon";
 import {DateTime} from "luxon";
+import {loadingState} from "./redux/util";
+import {useDispatch, useSelector} from "react-redux";
+import {AuthProvider, useAuth} from "react-oidc-context";
+import {authUpdate} from "./redux/authentication/authentication.slice";
+import {selectProfile} from "./redux/authentication/authentication.selector";
+import {selectConfig, selectConfigState} from "./redux/config/config.selector";
+import {fetchConfig} from "./redux/config/config.action";
+
+function ReduxAuthAdapter({children}) {
+    const auth = useAuth();
+    const dispatch = useDispatch();
+
+    React.useEffect(() => {
+        dispatch(authUpdate({
+            access_token: auth.user?.access_token,
+            profile: auth.user?.profile
+        }))
+    }, [dispatch, auth.user?.access_token, auth.user?.profile]);
+
+    return children;
+}
 
 function AuthRequired({children}) {
-    const {keycloak} = useKeycloak();
+    const auth = useAuth();
+    const profile = useSelector(selectProfile)
 
-    if (!keycloak.authenticated) {
-        keycloak.login();
-        return null;
-    }
+    useEffect(() => {
+        if (!auth.isLoading && !auth.isAuthenticated) {
+            auth.signinRedirect();
+        }
+    }, [auth.isLoading, auth.isAuthenticated, auth]);
 
-    const isAuthorized = keycloak.tokenParsed?.roles?.includes('member');
+    if(auth.isLoading) return "Loading...";
+
+    const isAuthorized = auth.isAuthenticated && profile?.roles?.includes('member');
 
     return isAuthorized ? children : <Unauthorized/>;
 }
 
 function App() {
-    const [config, setConfig] = useState(undefined);
-    const [keycloak, setKeycloak] = useState(undefined);
-
-    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+    const dispatch = useDispatch();
+    const config = useSelector(selectConfig)
+    const configState = useSelector(selectConfigState);
 
     useEffect(() => {
-        fetch('/config.json')
-            .then(res => res.json())
-            .then(res => {
-                setKeycloak(new Keycloak(res.KEYCLOAK))
-                setConfig(res);
-            })
-    }, [])
+        if(configState === loadingState.idle) {
+            dispatch(fetchConfig());
+        }
+    }, [configState, dispatch]);
 
-    const theme = React.useMemo(
-        () =>
-            createTheme({
-                    palette: {
-                        mode: prefersDarkMode ? 'dark' : 'light'
-                    }
-                }
-            ), [prefersDarkMode]);
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+    const theme = React.useMemo(() =>
+        createTheme({
+            palette: {
+                mode: prefersDarkMode ? 'dark' : 'light'
+            }
+        }
+    ), [prefersDarkMode]);
 
     const locale = useMemo(() => DateTime.now().resolvedLocaleOptions().locale, []);
 
-    if (!config) return null;
+    const onSigninCallback = useCallback(() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }, []);
+
+    if (configState === loadingState.failed) return "Error loading configuration";
+    if (configState === loadingState.pending || configState === loadingState.idle) return "Loading...";
 
     return (
-        <ConfigurationContext.Provider value={config}>
-            <ReactKeycloakProvider authClient={keycloak} LoadingComponent={<React.Fragment/>} initOptions={{
-                onLoad: '',
-                promiseType: 'native',
-                flow: 'standard',
-                pkceMethod: 'S256',
-                checkLoginIframe: false,
-            }}>
+        <AuthProvider
+            authority={`${config.KEYCLOAK.url}/realms/${config.KEYCLOAK.realm}`}
+            client_id={config.KEYCLOAK.clientId}
+            redirect_uri={window.location.origin.toString()}
+            automaticSilentRenew={true}
+            onSigninCallback={onSigninCallback}
+        >
+            <ReduxAuthAdapter>
                 <ThemeProvider theme={theme}>
                     <LocalizationProvider dateAdapter={AdapterLuxon} adapterLocale={locale}>
                         <CssBaseline/>
@@ -117,8 +140,8 @@ function App() {
                         </BrowserRouter>
                     </LocalizationProvider>
                 </ThemeProvider>
-            </ReactKeycloakProvider>
-        </ConfigurationContext.Provider>
+            </ReduxAuthAdapter>
+        </AuthProvider>
     );
 }
 

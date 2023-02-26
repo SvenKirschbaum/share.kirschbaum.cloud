@@ -1,13 +1,13 @@
 import {useEffect} from "react";
 
 import {useNavigate} from "react-router";
-import {useKeycloak} from "@react-keycloak/web";
+import {useAuth} from "react-oidc-context";
 
 function DropFile(props) {
     const navigate = useNavigate();
-    const {keycloak} = useKeycloak();
+    const auth = useAuth()
 
-    const enabled = keycloak.authenticated && keycloak.tokenParsed?.roles?.includes('member');
+    const enabled = auth.isAuthenticated && auth.user.profile.roles?.includes('member');
 
     const onDragOver = (e) => {
         if (e.dataTransfer.types.includes("Files")) {
