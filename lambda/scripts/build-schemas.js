@@ -21,7 +21,7 @@ const ajv = new Ajv({
 addFormats(ajv);
 
 //Read all Schema files
-let meta = glob.sync('../src/schemas/*.schema.json', {
+let meta = glob.globSync('../src/schemas/*.schema.json', {
         cwd: __dirname,
         absolute: true
     })
