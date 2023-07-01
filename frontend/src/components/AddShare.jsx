@@ -23,7 +23,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import {useLocation, useNavigate} from "react-router";
-import {DateTimePicker} from "@mui/x-date-pickers";
+import {DateTimePicker, renderTimeViewClock} from "@mui/x-date-pickers";
 import RequestFileIcon from "../icons/RequestFileIcon";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import {DateTime} from "luxon";
@@ -272,7 +272,25 @@ function BaseAddDialog(props) {
                         <TextField label={'Title'} fullWidth margin="normal" variant="filled" value={title} onChange={(event => setTitle(event.target.value))} disabled={props.disableTitle}/>
                     </FormGroup>
                     <FormGroup row>
-                        <DateTimePicker renderInput={props => <TextField {...props} label={"Expiration Date"} fullWidth margin={"normal"} variant={"filled"} />} inputFormat={"fff"} disablePast value={expire} onChange={setExpire} />
+                        <DateTimePicker
+                            slotProps={{
+                                textField: {
+                                    label: "Expiration Date",
+                                    fullWidth: true,
+                                    margin: "normal",
+                                    variant: "filled"
+                                }
+                            }}
+                            viewRenderers={{
+                                hours: renderTimeViewClock,
+                                minutes: renderTimeViewClock,
+                                seconds: renderTimeViewClock,
+                            }}
+                            format={"DD HH:mm"}
+                            disablePast
+                            value={expire}
+                            onChange={setExpire}
+                        />
                     </FormGroup>
                     {props.children}
                 </CardContent>

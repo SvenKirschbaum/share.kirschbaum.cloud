@@ -68,16 +68,18 @@ const shareSlice = createSlice({
             .addCase(addShare.fulfilled, (state, action) => {
                 state.add.state = loadingState.complete;
 
-                action.payload.forEach((p) => {
-                    state.shares.push({
-                        id: p.id,
-                        title: p.title,
-                        type: p.type,
-                        created: p.created,
-                        expire: p.expires,
-                        clicks: {}
+                if(state.state === loadingState.complete) {
+                    action.payload.forEach((p) => {
+                        state.shares.push({
+                            id: p.id,
+                            title: p.title,
+                            type: p.type,
+                            created: p.created,
+                            expire: p.expires,
+                            clicks: {}
+                        });
                     });
-                });
+                }
             })
             .addCase(addShare.rejected, (state, action) => {
                 state.add.state = loadingState.failed;
