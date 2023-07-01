@@ -61,8 +61,8 @@ export default class SharePipelineStack extends Stack {
   }
 
   private createPipeline() {
-    const source = pipelines.CodePipelineSource.connection('fallobst22/share.kirschbaum.cloud', 'master', {
-      connectionArn: 'arn:aws:codestar-connections:eu-central-1:900412866728:connection/800140c2-1054-4743-bdea-deb6eb8dedcc',
+    const source = pipelines.CodePipelineSource.connection('SvenKirschbaum/share.kirschbaum.cloud', 'master', {
+      connectionArn: 'arn:aws:codestar-connections:eu-central-1:900412866728:connection/15c9db0d-06bc-4041-bcd2-6bf17718fccb',
     });
 
     const synth = new pipelines.ShellStep('Synth', {
@@ -94,7 +94,7 @@ export default class SharePipelineStack extends Stack {
   private createBuild() {
     new codebuild.Project(this, 'Build', {
       source: codebuild.Source.gitHub({
-        owner: 'fallobst22',
+        owner: 'SvenKirschbaum',
         repo: 'share.kirschbaum.cloud',
         webhook: true,
         webhookFilters: [
