@@ -33,7 +33,7 @@
     "@vitejs/plugin-react": "^4.0.0",
     "typescript": "5.2.2",
     "vite": "^4.3.3",
-    "vite-plugin-svgr": "^3.0.0"
+    "vite-plugin-svgr": "^4.0.0"
   },
   "scripts": {
     "start": "vite",
