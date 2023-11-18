@@ -9,7 +9,7 @@ export default class DefaultNodejsFunction extends NodejsFunction {
   constructor(scope: Construct, id: string, props: NodejsFunctionProps) {
     super(scope, id, {
       ...props,
-      runtime: Runtime.NODEJS_16_X,
+      runtime: Runtime.NODEJS_20_X,
       architecture: Architecture.ARM_64,
       logRetention: RetentionDays.TWO_WEEKS,
       tracing: Tracing.ACTIVE,

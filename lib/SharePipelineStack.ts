@@ -85,7 +85,7 @@ export default class SharePipelineStack extends Stack {
       crossAccountKeys: true,
       codeBuildDefaults: {
         buildEnvironment: {
-          buildImage: codebuild.LinuxBuildImage.STANDARD_6_0,
+          buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         },
       },
     });
@@ -126,7 +126,7 @@ export default class SharePipelineStack extends Stack {
         },
       }),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_6_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         computeType: codebuild.ComputeType.SMALL,
       },
     });
