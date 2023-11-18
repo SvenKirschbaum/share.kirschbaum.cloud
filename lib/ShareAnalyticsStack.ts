@@ -4,7 +4,7 @@ import {
 import { Construct } from 'constructs';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
-import { JsonPath } from 'aws-cdk-lib/aws-stepfunctions';
+import {DefinitionBody, JsonPath} from 'aws-cdk-lib/aws-stepfunctions';
 import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
 import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
@@ -111,7 +111,7 @@ export default class ShareAnalyticsStack extends Stack {
       );
 
     this.stateMachine = new sfn.StateMachine(this, 'LogParsingStateMachine', {
-      definition,
+      definitionBody: DefinitionBody.fromChainable(definition),
       tracingEnabled: true,
     });
   }
