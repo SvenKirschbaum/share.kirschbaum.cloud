@@ -1,12 +1,12 @@
-/* eslint-disable */
 import * as os from 'os';
 import * as path from 'path';
-import { Architecture, AssetCode, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
-import * as cdk from '@aws-cdk/core';
+import { IConstruct } from 'constructs';
 import { PackageInstallation } from './package-installation';
-import { PackageManager } from './package-manager';
-import { BundlingOptions, OutputFormat, SourceMapMode } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { LockFile, PackageManager } from './package-manager';
+import { BundlingOptions, OutputFormat, SourceMapMode } from './types';
 import { exec, extractDependencies, findUp, getTsconfigCompilerOptions } from './util';
+import { Architecture, AssetCode, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
 
 const ESBUILD_MAJOR_VERSION = '0';
 
@@ -44,6 +44,11 @@ export interface BundlingProps extends BundlingOptions {
      */
     readonly preCompilation?: boolean
 
+    /**
+     * Which option to use to copy the source files to the docker container and output files back
+     * @default - BundlingFileAccess.BIND_MOUNT
+     */
+    readonly bundlingFileAccess?: cdk.BundlingFileAccess;
 }
 
 /**
@@ -53,12 +58,11 @@ export class Bundling implements cdk.BundlingOptions {
     /**
      * esbuild bundled Lambda asset code
      */
-    public static bundle(options: BundlingProps): AssetCode {
+    public static bundle(scope: IConstruct, options: BundlingProps): AssetCode {
         return Code.fromAsset(options.projectRoot, {
             assetHash: options.assetHash,
-            //@ts-ignore
             assetHashType: options.assetHash ? cdk.AssetHashType.CUSTOM : cdk.AssetHashType.OUTPUT,
-            bundling: new Bundling(options),
+            bundling: new Bundling(scope, options),
         });
     }
 
@@ -75,10 +79,17 @@ export class Bundling implements cdk.BundlingOptions {
 
     // Core bundling options
     public readonly image: cdk.DockerImage;
+    public readonly entrypoint?: string[]
     public readonly command: string[];
+    public readonly volumes?: cdk.DockerVolume[];
+    public readonly volumesFrom?: string[];
     public readonly environment?: { [key: string]: string };
     public readonly workingDirectory: string;
+    public readonly user?: string;
+    public readonly securityOpt?: string;
+    public readonly network?: string;
     public readonly local?: cdk.ILocalBundling;
+    public readonly bundlingFileAccess?: cdk.BundlingFileAccess;
 
     private readonly projectRoot: string;
     private readonly relativeEntryPath: string;
@@ -87,7 +98,7 @@ export class Bundling implements cdk.BundlingOptions {
     private readonly externals: string[];
     private readonly packageManager: PackageManager;
 
-    constructor(private readonly props: BundlingProps) {
+    constructor(scope: IConstruct, private readonly props: BundlingProps) {
         this.packageManager = PackageManager.fromLockFile(props.depsLockFilePath, props.logLevel);
 
         Bundling.esbuildInstallation = Bundling.esbuildInstallation ?? PackageInstallation.detect('esbuild');
@@ -109,13 +120,35 @@ export class Bundling implements cdk.BundlingOptions {
             throw new Error('preCompilation can only be used with typescript files');
         }
 
-        if (props.format === OutputFormat.ESM
-            && (props.runtime === Runtime.NODEJS_10_X || props.runtime === Runtime.NODEJS_12_X)) {
+        if (props.format === OutputFormat.ESM && !isEsmRuntime(props.runtime)) {
             throw new Error(`ECMAScript module output format is not supported by the ${props.runtime.name} runtime`);
         }
 
+        // Modules to externalize when using a constant known version of the runtime.
+        // Mark aws-sdk as external by default (available in the runtime)
+        const isV2Runtime = isSdkV2Runtime(props.runtime);
+        const versionedExternals = isV2Runtime ? ['aws-sdk'] : ['@aws-sdk/*'];
+        // Don't automatically externalize any dependencies when using a `latest` runtime which may
+        // update versions in the future.
+        const defaultExternals = props.runtime?.isVariable ? [] : versionedExternals;
+        const externals = props.externalModules ?? defaultExternals;
+
+        // Warn users if they are trying to rely on global versions of the SDK that aren't available in
+        // their environment.
+        if (isV2Runtime && externals.some((pkgName) => pkgName.startsWith('@aws-sdk/'))) {
+            cdk.Annotations.of(scope).addWarningV2('@aws-cdk/aws-lambda-nodejs:sdkV3NotInRuntime', 'If you are relying on AWS SDK v3 to be present in the Lambda environment already, please explicitly configure a NodeJS runtime of Node 18 or higher.');
+        } else if (!isV2Runtime && externals.includes('aws-sdk')) {
+            cdk.Annotations.of(scope).addWarningV2('@aws-cdk/aws-lambda-nodejs:sdkV2NotInRuntime', 'If you are relying on AWS SDK v2 to be present in the Lambda environment already, please explicitly configure a NodeJS runtime of Node 16 or lower.');
+        }
+
+        // Warn users if they are using a runtime that may change and are excluding any dependencies from
+        // bundling.
+        if (externals.length && props.runtime?.isVariable) {
+            cdk.Annotations.of(scope).addWarningV2('@aws-cdk/aws-lambda-nodejs:variableRuntimeExternals', 'When using NODEJS_LATEST the runtime version may change as new runtimes are released, this may affect the availability of packages shipped with the environment. Ensure that any external dependencies are available through layers or specify a specific runtime version.');
+        }
+
         this.externals = [
-            ...props.externalModules ?? ['aws-sdk'], // Mark aws-sdk as external by default (available in the runtime)
+            ...externals,
             ...props.nodeModules ?? [], // Mark the modules that we are going to install as externals also
         ];
 
@@ -125,6 +158,7 @@ export class Bundling implements cdk.BundlingOptions {
             {
                 buildArgs: {
                     ...props.buildArgs ?? {},
+                    // If runtime isn't passed use regional default, lowest common denominator is node18
                     IMAGE: props.runtime.bundlingImage.image,
                     ESBUILD_VERSION: props.esbuildVersion ?? ESBUILD_MAJOR_VERSION,
                 },
@@ -139,11 +173,18 @@ export class Bundling implements cdk.BundlingOptions {
             tscRunner: 'tsc', // tsc is installed globally in the docker image
             osPlatform: 'linux', // linux docker image
         });
-        this.command = ['bash', '-c', bundlingCommand];
+        this.command = props.command ?? ['bash', '-c', bundlingCommand];
         this.environment = props.environment;
         // Bundling sets the working directory to cdk.AssetStaging.BUNDLING_INPUT_DIR
         // and we want to force npx to use the globally installed esbuild.
-        this.workingDirectory = '/';
+        this.workingDirectory = props.workingDirectory ?? '/';
+        this.entrypoint = props.entrypoint;
+        this.volumes = props.volumes;
+        this.volumesFrom = props.volumesFrom;
+        this.user = props.user;
+        this.securityOpt = props.securityOpt;
+        this.network = props.network;
+        this.bundlingFileAccess = props.bundlingFileAccess;
 
         // Local bundling
         if (!props.forceDockerBundling) { // only if Docker is not forced
@@ -198,7 +239,6 @@ export class Bundling implements cdk.BundlingOptions {
             ...this.props.metafile ? [`--metafile=${pathJoin(options.outputDir, 'index.meta.json')}`] : [],
             ...this.props.banner ? [`--banner:js=${JSON.stringify(this.props.banner)}`] : [],
             ...this.props.footer ? [`--footer:js=${JSON.stringify(this.props.footer)}`] : [],
-            ...this.props.charset ? [`--charset=${this.props.charset}`] : [],
             ...this.props.mainFields ? [`--main-fields=${this.props.mainFields.join(',')}`] : [],
             ...this.props.inject ? this.props.inject.map(i => `--inject:${i}`) : [],
             ...this.props.esbuildArgs ? [toCliArgs(this.props.esbuildArgs)] : [],
@@ -219,12 +259,16 @@ export class Bundling implements cdk.BundlingOptions {
 
             const lockFilePath = pathJoin(options.inputDir, this.relativeDepsLockFilePath ?? this.packageManager.lockFile);
 
+            const isPnpm = this.packageManager.lockFile === LockFile.PNPM;
+
             // Create dummy package.json, copy lock file if any and then install
             depsCommand = chain([
+                isPnpm ? osCommand.write(pathJoin(options.outputDir, 'pnpm-workspace.yaml'), ''): '', // Ensure node_modules directory is installed locally by creating local 'pnpm-workspace.yaml' file
                 osCommand.writeJson(pathJoin(options.outputDir, 'package.json'), { dependencies }),
                 osCommand.copy(lockFilePath, pathJoin(options.outputDir, this.packageManager.lockFile)),
                 osCommand.changeDirectory(options.outputDir),
                 this.packageManager.installCommand.join(' '),
+                isPnpm ? osCommand.remove(pathJoin(options.outputDir, 'node_modules', '.modules.yaml'), true) : '', // Remove '.modules.yaml' file which changes on each deployment
             ]);
         }
 
@@ -300,13 +344,20 @@ interface BundlingCommandOptions {
 class OsCommand {
     constructor(private readonly osPlatform: NodeJS.Platform) {}
 
-    public writeJson(filePath: string, data: any): string {
-        const stringifiedData = JSON.stringify(data);
+    public write(filePath: string, data: string): string {
         if (this.osPlatform === 'win32') {
-            return `echo ^${stringifiedData}^ > "${filePath}"`;
+            if (!data) { // if `data` is empty, echo a blank line, otherwise the file will contain a `^` character
+                return `echo. > "${filePath}"`;
+            }
+            return `echo ^${data}^ > "${filePath}"`;
         }
 
-        return `echo '${stringifiedData}' > "${filePath}"`;
+        return `echo '${data}' > "${filePath}"`;
+    }
+
+    public writeJson(filePath: string, data: any): string {
+        const stringifiedData = JSON.stringify(data);
+        return this.write(filePath, stringifiedData);
     }
 
     public copy(src: string, dest: string): string {
@@ -319,6 +370,15 @@ class OsCommand {
 
     public changeDirectory(dir: string): string {
         return `cd "${dir}"`;
+    }
+
+    public remove(filePath: string, force: boolean = false): string {
+        if (this.osPlatform === 'win32') {
+            return `del "${filePath}"`;
+        }
+
+        const opts = force ? ['-f'] : [];
+        return `rm ${opts.join(' ')} "${filePath}"`;
     }
 }
 
@@ -357,7 +417,7 @@ function toTarget(runtime: Runtime): string {
 }
 
 function toCliArgs(esbuildArgs: { [key: string]: string | boolean }): string {
-    const args = [];
+    const args = new Array<string>();
 
     for (const [key, value] of Object.entries(esbuildArgs)) {
         if (value === true || value === '') {
@@ -368,4 +428,38 @@ function toCliArgs(esbuildArgs: { [key: string]: string | boolean }): string {
     }
 
     return args.join(' ');
+}
+
+/**
+ * Detect if a given Node.js runtime uses SDKv2
+ */
+function isSdkV2Runtime(runtime: Runtime): boolean {
+    const sdkV2RuntimeList = [
+        Runtime.NODEJS,
+        Runtime.NODEJS_4_3,
+        Runtime.NODEJS_6_10,
+        Runtime.NODEJS_8_10,
+        Runtime.NODEJS_10_X,
+        Runtime.NODEJS_12_X,
+        Runtime.NODEJS_14_X,
+        Runtime.NODEJS_16_X,
+    ];
+
+    return sdkV2RuntimeList.some((r) => {return r.family === runtime.family && r.name === runtime.name;});
+}
+
+/**
+ * Detect if a given Node.js runtime supports ESM (ECMAScript modules)
+ */
+function isEsmRuntime(runtime: Runtime): boolean {
+    const unsupportedRuntimes = [
+        Runtime.NODEJS,
+        Runtime.NODEJS_4_3,
+        Runtime.NODEJS_6_10,
+        Runtime.NODEJS_8_10,
+        Runtime.NODEJS_10_X,
+        Runtime.NODEJS_12_X,
+    ];
+
+    return !unsupportedRuntimes.some((r) => {return r.family === runtime.family && r.name === runtime.name;});
 }

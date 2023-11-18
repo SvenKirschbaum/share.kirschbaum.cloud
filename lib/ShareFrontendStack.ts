@@ -202,7 +202,7 @@ export default class ShareFrontendStack extends Stack {
     const forwardFunction = new experimental.EdgeFunction(this, 'ForwardShare', {
       runtime: Runtime.NODEJS_20_X,
       handler: 'index.handler',
-      code: Bundling.bundle({
+      code: Bundling.bundle(this, {
         entry: path.resolve('lambda/src/functions/forwardShare.ts'),
         runtime: Runtime.NODEJS_20_X,
         architecture: Architecture.X86_64,
