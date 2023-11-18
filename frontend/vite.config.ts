@@ -9,7 +9,7 @@ export default defineConfig({
     server: {
         port: 3000,
         // Required to work with oauth provider
-        https: true,
+        https: {},
     },
     preview: {
         port: 3000
