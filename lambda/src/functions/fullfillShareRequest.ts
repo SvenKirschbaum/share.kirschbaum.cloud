@@ -101,7 +101,9 @@ export const handler = middy(lambdaHandler)
     .use(errorLogger())
     .use(httpHeaderNormalizer())
     .use(httpContentNegotiation())
-    .use(httpJsonBodyParserMiddleware())
+    .use(httpJsonBodyParserMiddleware({
+        disableContentTypeError: true
+    }))
     .use(
         httpResponseSerializerMiddleware({
             serializers: [
