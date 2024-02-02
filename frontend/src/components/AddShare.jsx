@@ -1,4 +1,5 @@
 import {
+    Alert,
     Button,
     Card,
     CardActions,
@@ -121,6 +122,7 @@ export function AddFile() {
 
     const fileInput = useRef();
 
+    const [rerender, setRerender] = useState(0);
     const [forceDownload, setForceDownload] = useState(false);
     const [suggestedTitle, setSuggestedTitle] = useState(undefined);
 
@@ -133,13 +135,15 @@ export function AddFile() {
     }, [location.state]);
 
     const onFileChange = () => {
+        //Only required to hide the error message after change
+        setRerender(rerender + 1);
         setSuggestedTitle(fileInput.current?.files[0]?.name)
     }
 
     return (
         <BaseAddDialog
             title={"Add File"}
-            validate={() => fileInput.current.files[0]}
+            validate={() => fileInput.current.files[0] && fileInput.current.files[0].size > 0}
             disableTitle={fileInput.current?.files?.length > 1}
             getActionData={() => {
                 if(fileInput.current.files.length > 1) {
@@ -179,6 +183,13 @@ export function AddFile() {
             <FormGroup row>
                 <Input type="file" disableUnderline={true} inputRef={fileInput} sx={{margin: '10px auto'}} onChange={onFileChange} inputProps={{multiple: true}} />
             </FormGroup>
+            {fileInput.current?.files[0] && fileInput.current?.files[0].size === 0 &&
+                <FormGroup>
+                    <Alert severity={"error"}>
+                        Browser Bug Detected: The selected file has no size, likely due to its Path exceeding ~260 Characters. Please press the file input button, and reselect the file.
+                    </Alert>
+                </FormGroup>
+            }
         </BaseAddDialog>
     );
 }
