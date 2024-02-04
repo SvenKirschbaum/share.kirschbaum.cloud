@@ -20,6 +20,7 @@ import validatorMiddleware from "@middy/validator";
 import eventSchemaValidator from "../schemas/CompleteUploadRequestEvent.validator";
 import {BadRequest, Conflict, NotFound} from "http-errors";
 import {CompleteUploadRequestDTO} from "../schemas/CompleteUploadRequestDTO.interface";
+import validationErrorJSONFormatter from "../util/exposeValidationErrorMiddleware";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 const ses = tracer.captureAWSv3Client(new SESv2Client({region: process.env.AWS_REGION}));
@@ -109,6 +110,7 @@ const lambdaHandler = async function completeUpload(event: APIGatewayProxyEventV
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
     .use(injectLambdaContext(logger))
+    .use(validationErrorJSONFormatter())
     .use(httpErrorHandlerMiddleware())
     .use(errorLogger())
     .use(httpHeaderNormalizer())

@@ -21,6 +21,7 @@ import authorizationMiddleware from "../services/AuthorizationMiddleware";
 
 import eventSchemaValidator from '../schemas/AddShareRequestEvent.validator';
 import {AddShareRequestDTO} from "../schemas/AddShareRequestDTO.interface";
+import validationErrorJSONFormatter from "../util/exposeValidationErrorMiddleware";
 
 const ddb = tracer.captureAWSv3Client(new DynamoDBClient({region: process.env.AWS_REGION}));
 
@@ -148,6 +149,7 @@ const lambdaHandler = async function addShareHandler(event: APIGatewayProxyEvent
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
     .use(injectLambdaContext(logger))
+    .use(validationErrorJSONFormatter())
     .use(httpErrorHandlerMiddleware())
     .use(errorLogger())
     .use(authorizationMiddleware())
