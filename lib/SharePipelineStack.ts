@@ -15,9 +15,9 @@ export default class SharePipelineStack extends Stack {
     pipeline.addStage(new ShareStage(this, 'Staging', {
       domain: 'share-staging.kirschbaum.cloud',
       delegation: {
-        parentDomain: 'kirschbaum.cloud',
-        accountId: '212836051001',
-        roleName: 'CloudshareDNSDelegationRole',
+        parentZoneId: 'Z0202936UCVSS5ELQXV6',
+        accountId: '058264224454',
+        roleName: 'CloudshareStagingDnsDelegationRole',
       },
       keycloak: {
         url: 'https://id.elite12.de',
@@ -36,9 +36,9 @@ export default class SharePipelineStack extends Stack {
       new ShareStage(scope, 'Prod', {
         domain: 'share.kirschbaum.cloud',
         delegation: {
-          parentDomain: 'kirschbaum.cloud',
-          accountId: '212836051001',
-          roleName: 'CloudshareDNSDelegationRole',
+          parentZoneId: 'Z0202936UCVSS5ELQXV6',
+          accountId: '058264224454',
+          roleName: 'CloudshareProdDnsDelegationRole',
         },
         keycloak: {
           url: 'https://id.elite12.de',

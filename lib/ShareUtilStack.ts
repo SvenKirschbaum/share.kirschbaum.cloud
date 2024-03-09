@@ -50,6 +50,7 @@ export default class ShareUtilStack extends Stack {
         new route53.CrossAccountZoneDelegationRecord(this, 'DelegationRecord', {
           delegatedZone: this.zone,
           parentHostedZoneName: delegationOptions.parentDomain,
+          parentHostedZoneId: delegationOptions.parentZoneId,
           delegationRole: iam.Role.fromRoleArn(this, 'DelegationRole', Stack.of(this).formatArn({
             region: '', // IAM is global in each partition
             service: 'iam',
