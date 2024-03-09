@@ -1,9 +1,9 @@
 import {APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
 import {DynamoDBClient, GetItemCommand, PutItemCommand} from "@aws-sdk/client-dynamodb";
 import {uploadService} from "../services/UploadService";
-import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer/middleware";
 import {tracer} from "../services/Tracer";
-import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger/middleware";
 import {logger} from "../services/Logger";
 import {DateTime} from "luxon";
 import {BadRequest, NotFound} from "http-errors";

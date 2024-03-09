@@ -3,9 +3,9 @@ import {
     DynamoDBClient,
     QueryCommand
 } from "@aws-sdk/client-dynamodb";
-import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer/middleware";
 import {tracer} from "../services/Tracer";
-import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger/middleware";
 import {logger} from "../services/Logger";
 import {DateTime} from "luxon";
 
