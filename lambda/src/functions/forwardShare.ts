@@ -4,7 +4,8 @@ import {
 } from "aws-lambda";
 import {DynamoDBClient, GetItemCommand} from "@aws-sdk/client-dynamodb";
 import {CloudFrontRequestHandler} from "aws-lambda/trigger/cloudfront-request";
-import {injectLambdaContext, Logger} from "@aws-lambda-powertools/logger";
+import {Logger} from "@aws-lambda-powertools/logger";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger/middleware";
 import middy from "@middy/core";
 import {DateTime} from "luxon";
 import {response404, response500} from "../types/edgeResponses";

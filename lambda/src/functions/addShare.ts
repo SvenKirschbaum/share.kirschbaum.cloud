@@ -8,8 +8,8 @@ import {DateTime} from "luxon";
 import {BadRequest, InternalServerError, UnprocessableEntity} from "http-errors"
 
 import middy from "@middy/core";
-import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
-import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer/middleware";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger/middleware";
 import httpJsonBodyParserMiddleware from '@middy/http-json-body-parser'
 import httpResponseSerializerMiddleware from '@middy/http-response-serializer'
 import validatorMiddleware from '@middy/validator'

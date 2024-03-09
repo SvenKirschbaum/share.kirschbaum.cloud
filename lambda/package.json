@@ -2,8 +2,8 @@
   "name": "share-lambda",
   "version": "1.0.0",
   "dependencies": {
-    "@aws-lambda-powertools/logger": "1.18.1",
-    "@aws-lambda-powertools/tracer": "1.18.1",
+    "@aws-lambda-powertools/logger": "2.0.2",
+    "@aws-lambda-powertools/tracer": "2.0.2",
     "@aws-sdk/client-dynamodb": "3.525.0",
     "@aws-sdk/client-s3": "3.525.0",
     "@aws-sdk/client-sesv2": "3.525.0",

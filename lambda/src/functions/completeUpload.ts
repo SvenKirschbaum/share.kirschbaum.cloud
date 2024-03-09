@@ -3,8 +3,8 @@ import {DynamoDBClient, GetItemCommand, PutItemCommand} from "@aws-sdk/client-dy
 import {uploadService} from "../services/UploadService";
 import {SendBulkEmailCommand, SESv2Client} from "@aws-sdk/client-sesv2";
 import {tracer} from "../services/Tracer";
-import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
-import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer/middleware";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger/middleware";
 import {logger} from "../services/Logger";
 import {DateTime} from "luxon";
 

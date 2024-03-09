@@ -1,8 +1,8 @@
 import {APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2} from "aws-lambda";
 import {DynamoDBClient, DeleteItemCommand} from "@aws-sdk/client-dynamodb";
 import {tracer} from "../services/Tracer";
-import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
-import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer/middleware";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger/middleware";
 import {logger} from "../services/Logger";
 
 import middy from "@middy/core";

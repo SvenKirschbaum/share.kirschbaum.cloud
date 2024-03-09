@@ -8,9 +8,9 @@ import CloudFrontParser from 'cloudfront-log-parser'
 import LogSubmittedEvent from "../types/LogSubmittedEvent";
 import {ClickData, ClickDataMap} from "../types/ClickData";
 import middy from "@middy/core";
-import {captureLambdaHandler} from "@aws-lambda-powertools/tracer";
+import {captureLambdaHandler} from "@aws-lambda-powertools/tracer/middleware";
 import {tracer} from "../services/Tracer";
-import {injectLambdaContext} from "@aws-lambda-powertools/logger";
+import {injectLambdaContext} from "@aws-lambda-powertools/logger/middleware";
 import {logger} from "../services/Logger";
 import errorLogger from "@middy/error-logger";
 
