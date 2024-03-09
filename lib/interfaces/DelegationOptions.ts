@@ -2,7 +2,11 @@ export interface DelegationOptions {
     /**
      * The name of the parent zone (domain)
      */
-    parentDomain: string,
+    parentDomain?: string,
+    /**
+     * The id of the parent zone
+     */
+    parentZoneId?: string,
     /**
      * The id of the account containing the parent zone
      */
