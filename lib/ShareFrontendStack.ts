@@ -16,16 +16,18 @@ import {
   OriginRequestQueryStringBehavior,
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
-import * as route53 from 'aws-cdk-lib/aws-route53';
-import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import { HostedZone } from 'aws-cdk-lib/aws-route53/lib/hosted-zone';
+import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import * as path from 'path';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import DefaultResponseHeadersPolicy from './util/DefaultResponseHeadersPolicy';
 import { Bundling } from './util/bundling/Bundling';
+import {DelegationOptions} from "./interfaces/DelegationOptions";
+import {CrossAccountRoute53RecordSet} from "@fallobst22/cdk-cross-account-route53";
+import {RecordType} from "aws-cdk-lib/aws-route53";
+import {DnsValidatedCertificate} from "@trautonen/cdk-dns-validated-certificate";
+import {Role} from "aws-cdk-lib/aws-iam";
 
 export interface ShareFrontendStackProps extends StackProps {
     frontendDomain?: string,
@@ -34,7 +36,7 @@ export interface ShareFrontendStackProps extends StackProps {
     keycloakRealm: string;
     keycloakClientId: string;
     disableEmail: boolean;
-    zone?: HostedZone,
+    delegation?: DelegationOptions
     logBucket: Bucket,
     storageBucket: Bucket,
     table: Table
@@ -56,7 +58,7 @@ export default class ShareFrontendStack extends Stack {
       props.keycloakClientId,
       props.disableEmail,
     );
-    this.createDistribution(props.logBucket, props.frontendDomain, props.zone);
+    this.createDistribution(props.logBucket, props.frontendDomain, props.delegation);
     this.createAssetAccessResources(
       props.storageBucket,
       props.table,
@@ -127,15 +129,21 @@ export default class ShareFrontendStack extends Stack {
     });
   }
 
-  private createDistribution(logBucket: Bucket, domain?: string, zone?: HostedZone) {
+  private createDistribution(logBucket: Bucket, domain?: string, delegation?: DelegationOptions) {
     let certificate;
-    if (domain && zone) {
-      certificate = new acm.DnsValidatedCertificate(this, 'Certificate', {
+    if (domain && delegation) {
+      const hostedZone = HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+        hostedZoneId: delegation.parentZoneId,
+        zoneName: domain
+      })
+      certificate = new DnsValidatedCertificate(this, 'DistributionCertificate', {
+        hostedZone: hostedZone,
         domainName: domain,
-        hostedZone: zone,
-        // Required for use with Cloudfront
-        region: 'us-east-1',
-      });
+        validationRole: Role.fromRoleArn(this, 'CertificateValidationRole', 'arn:aws:iam::' + delegation.accountId + ':role/' +delegation.roleName, {
+          mutable: false
+        }),
+        certificateRegion: 'us-east-1'
+      })
     }
 
     // This is required, as the automatically created OAI will not include List permissions,
@@ -178,15 +186,31 @@ export default class ShareFrontendStack extends Stack {
       httpVersion: HttpVersion.HTTP2_AND_3,
     });
 
-    if (domain && zone) {
-      new route53.ARecord(this, 'DistributionARecord', {
-        zone,
-        target: route53.RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
-      });
-
-      new route53.AaaaRecord(this, 'DistributionAAAARecord', {
-        zone,
-        target: route53.RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
+    if (domain && delegation) {
+      new CrossAccountRoute53RecordSet(this, 'DNSRecords', {
+        delegationRoleName: delegation.roleName,
+        delegationRoleAccount: delegation.accountId,
+        hostedZoneId: delegation.parentZoneId,
+        resourceRecordSets: [
+          {
+            Name: domain,
+            Type: RecordType.A,
+            AliasTarget: {
+              DNSName: this.distribution.distributionDomainName,
+              HostedZoneId: 'Z2FDTNDATAQYW2', // Cloudfront Hosted Zone ID
+              EvaluateTargetHealth: false,
+            },
+          },
+          {
+            Name: domain,
+            Type: RecordType.AAAA,
+            AliasTarget: {
+              DNSName: this.distribution.distributionDomainName,
+              HostedZoneId: 'Z2FDTNDATAQYW2', // Cloudfront Hosted Zone ID
+              EvaluateTargetHealth: false,
+            },
+          }
+        ],
       });
     }
 

@@ -37,6 +37,8 @@ export default class ShareStage extends Stage {
     super(scope, id, props);
 
     if (!props.domain && props.disableEmail === false) throw new Error('Emails cant be enabled without a custom domain');
+    if (!props.domain && props.delegation) throw new Error('Specifying a delegation without a domain is not possible');
+    if (props.domain && !props.delegation) throw new Error('Specifying a domain without a delegation is not possible');
 
     const frontendDomain = props.domain;
     const apiDomain = props.domain ? `api.${props.domain}` : undefined;
@@ -59,7 +61,7 @@ export default class ShareStage extends Stage {
       emailDomain: disableEmail ? undefined : frontendDomain,
       jwtAudience: props.keycloak.backendClientId,
       jwtIssuerUrl: `${props.keycloak.url}/realms/${props.keycloak.realm}`,
-      zone: utilities.zone,
+      delegation: props.delegation,
       table: state.table,
       storageBucket: state.storageBucket,
     });
@@ -75,7 +77,7 @@ export default class ShareStage extends Stage {
       keycloakUrl: props.keycloak.url,
       keycloakRealm: props.keycloak.realm,
       keycloakClientId: props.keycloak.frontendClientId,
-      zone: utilities.zone,
+      delegation: props.delegation,
       logBucket: analytics.logBucket,
       storageBucket: state.storageBucket,
       table: state.table,

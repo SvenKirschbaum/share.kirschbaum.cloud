@@ -1,14 +1,10 @@
 import {
-  CfnOutput, Fn, Stack, StackProps,
+  Stack, StackProps,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import { HostedZone } from 'aws-cdk-lib/aws-route53/lib/hosted-zone';
-import { DnsValidatedDomainIdentity } from 'aws-cdk-ses-domain-identity';
 import * as fs from 'fs';
 import * as path from 'path';
-import { CfnTemplate } from 'aws-cdk-lib/aws-ses';
+import {CfnTemplate, EmailIdentity, Identity} from 'aws-cdk-lib/aws-ses';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { DynamoEventSource, SqsDlq } from 'aws-cdk-lib/aws-lambda-event-sources';
@@ -16,6 +12,9 @@ import { StartingPosition } from 'aws-cdk-lib/aws-lambda';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import DefaultNodejsFunction from './util/DefaultNodejsFunction';
 import { DelegationOptions } from './interfaces/DelegationOptions';
+import {CrossAccountRoute53RecordSet} from "@fallobst22/cdk-cross-account-route53";
+import {RecordType} from "aws-cdk-lib/aws-route53";
+import {ResourceRecordSet} from "aws-sdk/clients/route53";
 
 export interface ShareUtilStackProps extends StackProps {
     domain?: string;
@@ -26,53 +25,31 @@ export interface ShareUtilStackProps extends StackProps {
 }
 
 export default class ShareUtilStack extends Stack {
-  public zone?: HostedZone;
-
   constructor(scope: Construct, id: string, props: ShareUtilStackProps) {
     super(scope, id, props);
 
-    this.createDnsResources(props.domain, props.delegation);
-    if (!props.disableEmail) this.createEmailResources(props.domain);
+    if (!props.disableEmail) this.createEmailResources(props.domain, props.delegation);
     this.createFileDeletionResources(props.table, props.storageBucket);
   }
 
-  private createDnsResources(domain?: string, delegationOptions?: DelegationOptions) {
-    if (!domain && delegationOptions) throw new Error('Specifing a delegation without a domain is not possible');
-
-    if (domain) {
-      this.zone = new route53.PublicHostedZone(this, 'HostedZone', {
-        zoneName: domain,
+  private createEmailResources(domain?: string, delegation?: DelegationOptions) {
+    if (domain && delegation) {
+      const identity = new EmailIdentity(this, 'EmailIdentity', {
+        identity: Identity.domain(domain),
       });
 
-      // Create delegation automatically if specified
-      if (delegationOptions) {
-        // create the delegation record
-        new route53.CrossAccountZoneDelegationRecord(this, 'DelegationRecord', {
-          delegatedZone: this.zone,
-          parentHostedZoneName: delegationOptions.parentDomain,
-          parentHostedZoneId: delegationOptions.parentZoneId,
-          delegationRole: iam.Role.fromRoleArn(this, 'DelegationRole', Stack.of(this).formatArn({
-            region: '', // IAM is global in each partition
-            service: 'iam',
-            account: delegationOptions.accountId,
-            resource: 'role',
-            resourceName: delegationOptions.roleName,
-          })),
-        });
-      }
-
-      new CfnOutput(this, 'Nameserver', {
-        value: Fn.join(' ', this.zone.hostedZoneNameServers as string[]),
-      });
-    }
-  }
-
-  private createEmailResources(domain?: string) {
-    if (this.zone && domain) {
-      new DnsValidatedDomainIdentity(this, 'DomainIdentity', {
-        domainName: domain,
-        dkim: true,
-        hostedZone: this.zone,
+      new CrossAccountRoute53RecordSet(this, 'EmailIdentityDNSRecords', {
+        delegationRoleName: delegation.roleName,
+        delegationRoleAccount: delegation.accountId,
+        hostedZoneId: delegation.parentZoneId,
+        resourceRecordSets: identity.dkimRecords.map((dkimRecord) => ({
+          Name: dkimRecord.name,
+          Type: RecordType.CNAME,
+          TTL: 3600,
+          ResourceRecords: [{
+            Value: dkimRecord.value
+          }],
+        } as ResourceRecordSet)),
       });
     }
 

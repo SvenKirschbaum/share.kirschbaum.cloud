@@ -8,10 +8,7 @@ import {
   HttpApi, HttpMethod, HttpStage,
 } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpJwtAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
-import { HostedZone } from 'aws-cdk-lib/aws-route53/lib/hosted-zone';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import * as targets from 'aws-cdk-lib/aws-route53-targets';
-import { AaaaRecord, ARecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import {HostedZone, RecordType} from 'aws-cdk-lib/aws-route53';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
@@ -25,13 +22,17 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import DefaultNodejsFunction from './util/DefaultNodejsFunction';
+import {DelegationOptions} from "./interfaces/DelegationOptions";
+import {CrossAccountRoute53RecordSet} from "@fallobst22/cdk-cross-account-route53";
+import {DnsValidatedCertificate} from "@trautonen/cdk-dns-validated-certificate";
+import {Role} from "aws-cdk-lib/aws-iam";
 
 export interface ShareApiStackProps extends StackProps {
     apiDomain?: string,
     emailDomain?: string,
     jwtIssuerUrl: string,
     jwtAudience: string,
-    zone?: HostedZone,
+    delegation?: DelegationOptions
     table: Table,
     storageBucket: Bucket
 }
@@ -46,7 +47,7 @@ export default class ShareApiStack extends Stack {
   constructor(scope: Construct, id: string, props: ShareApiStackProps) {
     super(scope, id, props);
     this.createApi(props.jwtIssuerUrl, props.jwtAudience);
-    this.createCustomDomain(props.apiDomain, props.zone);
+    this.createCustomDomain(props.apiDomain, props.delegation);
     this.createApiRoutes(props.table, props.storageBucket, props.emailDomain);
   }
 
@@ -76,14 +77,21 @@ export default class ShareApiStack extends Stack {
     });
   }
 
-  private createCustomDomain(domain?: string, zone?: HostedZone) {
+  private createCustomDomain(domain?: string, delegation?: DelegationOptions) {
     let certificate;
-    if (domain && zone) {
-      certificate = new acm.DnsValidatedCertificate(this, 'DistributionCertificate', {
+    if (domain && delegation) {
+      const hostedZone = HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+        hostedZoneId: delegation.parentZoneId,
+        zoneName: domain
+      })
+      certificate = new DnsValidatedCertificate(this, 'Certificate', {
+        hostedZone: hostedZone,
         domainName: domain,
-        hostedZone: zone,
-        region: 'us-east-1',
-      });
+        validationRole: Role.fromRoleArn(this, 'CertificateValidationRole', 'arn:aws:iam::' + delegation.accountId + ':role/' +delegation.roleName, {
+          mutable: false
+        }),
+        certificateRegion: 'us-east-1'
+      })
     }
 
     this.distribution = new Distribution(this, 'Distribution', {
@@ -103,17 +111,31 @@ export default class ShareApiStack extends Stack {
       httpVersion: HttpVersion.HTTP2_AND_3,
     });
 
-    if (domain && zone) {
-      new ARecord(this, 'ARecord', {
-        zone,
-        recordName: domain,
-        target: RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
-      });
-
-      new AaaaRecord(this, 'AAAARecord', {
-        zone,
-        recordName: domain,
-        target: RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
+    if (domain && delegation) {
+      new CrossAccountRoute53RecordSet(this, 'DNSRecords', {
+        delegationRoleName: delegation.roleName,
+        delegationRoleAccount:delegation.accountId,
+        hostedZoneId: delegation.parentZoneId,
+        resourceRecordSets: [
+          {
+            Name: domain,
+            Type: RecordType.A,
+            AliasTarget: {
+              DNSName: this.distribution.distributionDomainName,
+              HostedZoneId: 'Z2FDTNDATAQYW2', // Cloudfront Hosted Zone ID
+              EvaluateTargetHealth: false,
+            },
+          },
+          {
+            Name: domain,
+            Type: RecordType.AAAA,
+            AliasTarget: {
+              DNSName: this.distribution.distributionDomainName,
+              HostedZoneId: 'Z2FDTNDATAQYW2', // Cloudfront Hosted Zone ID
+              EvaluateTargetHealth: false,
+            },
+          }
+        ],
       });
     }
 
