@@ -101,7 +101,7 @@ export default class ShareAnalyticsStack extends Stack {
     const definition = parseLogStep
       .next(
         mapStep
-          .iterator(
+          .itemProcessor(
             updateClickData
               .addCatch(ignoreMissingShareState, {
                 errors: ['DynamoDB.ConditionalCheckFailedException'],
