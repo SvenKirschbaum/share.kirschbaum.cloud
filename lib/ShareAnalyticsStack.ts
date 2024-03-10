@@ -6,7 +6,7 @@ import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import {DefinitionBody, JsonPath} from 'aws-cdk-lib/aws-stepfunctions';
 import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
-import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import {BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership} from 'aws-cdk-lib/aws-s3';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import DefaultNodejsFunction from './util/DefaultNodejsFunction';
 
@@ -38,6 +38,7 @@ export default class ShareAnalyticsStack extends Stack {
       ],
       autoDeleteObjects: true,
       removalPolicy: RemovalPolicy.DESTROY,
+      objectOwnership: ObjectOwnership.OBJECT_WRITER,
     });
   }
 
