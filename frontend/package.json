@@ -12,7 +12,7 @@
     "@mui/x-date-pickers": "7.1.0",
     "@reduxjs/toolkit": "^2.0.0",
     "axios": "1.6.8",
-    "http-proxy-middleware": "2.0.6",
+    "http-proxy-middleware": "3.0.0",
     "luxon": "3.4.4",
     "oidc-client-ts": "^3.0.0",
     "pretty-bytes": "6.1.1",
