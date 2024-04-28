@@ -85,11 +85,13 @@ export default class ShareApiStack extends Stack {
         zoneName: domain
       })
       certificate = new DnsValidatedCertificate(this, 'Certificate', {
-        hostedZone: hostedZone,
+        validationHostedZones: [{
+            hostedZone: hostedZone,
+            validationRole: Role.fromRoleArn(this, 'CertificateValidationRole', 'arn:aws:iam::' + delegation.accountId + ':role/' +delegation.roleName, {
+              mutable: false
+            })
+        }],
         domainName: domain,
-        validationRole: Role.fromRoleArn(this, 'CertificateValidationRole', 'arn:aws:iam::' + delegation.accountId + ':role/' +delegation.roleName, {
-          mutable: false
-        }),
         certificateRegion: 'us-east-1'
       })
     }
