@@ -7,7 +7,7 @@
     "@aws-sdk/client-dynamodb": "3.637.0",
     "@aws-sdk/client-s3": "3.637.0",
     "@aws-sdk/client-sesv2": "3.637.0",
-    "@aws-sdk/client-sfn": "3.637.0",
+    "@aws-sdk/client-sfn": "3.642.0",
     "@aws-sdk/s3-request-presigner": "3.637.0",
     "@middy/core": "5.4.6",
     "@middy/http-content-negotiation": "5.4.6",
@@ -23,7 +23,7 @@
     "uuid": "10.0.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.143",
+    "@types/aws-lambda": "8.10.145",
     "@types/http-errors": "2.0.4",
     "@types/luxon": "3.4.2",
     "@types/uuid": "10.0.0",
