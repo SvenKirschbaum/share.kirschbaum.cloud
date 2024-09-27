@@ -27,8 +27,8 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.13",
-    "@types/node": "20.16.5",
-    "@types/react": "18.3.8",
+    "@types/node": "20.16.10",
+    "@types/react": "18.3.10",
     "@types/react-dom": "18.3.0",
     "@vitejs/plugin-basic-ssl": "^1.0.1",
     "@vitejs/plugin-react": "^4.0.0",
