@@ -12,10 +12,10 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.14",
-    "@types/node": "22.8.2",
-    "@typescript-eslint/eslint-plugin": "8.11.0",
-    "@typescript-eslint/parser": "8.11.0",
-    "aws-cdk": "2.164.1",
+    "@types/node": "22.8.6",
+    "@typescript-eslint/eslint-plugin": "8.12.2",
+    "@typescript-eslint/parser": "8.12.2",
+    "aws-cdk": "2.165.0",
     "chokidar": "4.0.1",
     "eslint": "8.57.1",
     "eslint-config-airbnb-base": "15.0.0",
@@ -26,9 +26,9 @@
     "typescript": "5.6.3"
   },
   "dependencies": {
-    "@fallobst22/cdk-cross-account-route53": "0.0.41",
+    "@fallobst22/cdk-cross-account-route53": "0.0.42",
     "@trautonen/cdk-dns-validated-certificate": "0.1.12",
-    "aws-cdk-lib": "2.164.1",
+    "aws-cdk-lib": "2.165.0",
     "aws-sdk": "2.1691.0",
     "constructs": "10.4.2",
     "esbuild": "0.24.0",
