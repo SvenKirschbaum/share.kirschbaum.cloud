@@ -91,7 +91,7 @@ const interfaceOptions = {
                 canRead: /^https:\/\/share\.kirschbaum\.cloud\/schemas\//i,
                 order: 1,
                 read: (file) => {
-                    return ajv.getSchema(file.url).schema;
+                    return JSON.stringify(ajv.getSchema(file.url).schema);
                 }
             }
         }
