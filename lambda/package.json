@@ -4,11 +4,11 @@
   "dependencies": {
     "@aws-lambda-powertools/logger": "2.12.0",
     "@aws-lambda-powertools/tracer": "2.12.0",
-    "@aws-sdk/client-dynamodb": "3.721.0",
-    "@aws-sdk/client-s3": "3.722.0",
-    "@aws-sdk/client-sesv2": "3.721.0",
-    "@aws-sdk/client-sfn": "3.721.0",
-    "@aws-sdk/s3-request-presigner": "3.722.0",
+    "@aws-sdk/client-dynamodb": "3.726.1",
+    "@aws-sdk/client-s3": "3.726.1",
+    "@aws-sdk/client-sesv2": "3.726.1",
+    "@aws-sdk/client-sfn": "3.726.1",
+    "@aws-sdk/s3-request-presigner": "3.726.1",
     "@middy/core": "6.0.0",
     "@middy/http-content-negotiation": "6.0.0",
     "@middy/http-header-normalizer": "6.0.0",
@@ -20,7 +20,7 @@
     "cloudfront-log-parser": "1.2.0",
     "http-errors": "2.0.0",
     "luxon": "3.5.0",
-    "uuid": "11.0.3"
+    "uuid": "11.0.5"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.147",
@@ -29,9 +29,9 @@
     "@types/uuid": "10.0.0",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
-    "glob": "11.0.0",
+    "glob": "11.0.1",
     "json-schema-to-typescript": "15.0.3",
-    "typescript": "5.7.2"
+    "typescript": "5.7.3"
   },
   "scripts": {
     "postinstall": "node scripts/build-schemas.js"
