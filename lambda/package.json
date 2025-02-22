@@ -4,11 +4,11 @@
   "dependencies": {
     "@aws-lambda-powertools/logger": "2.14.0",
     "@aws-lambda-powertools/tracer": "2.14.0",
-    "@aws-sdk/client-dynamodb": "3.749.0",
-    "@aws-sdk/client-s3": "3.749.0",
-    "@aws-sdk/client-sesv2": "3.749.0",
-    "@aws-sdk/client-sfn": "3.749.0",
-    "@aws-sdk/s3-request-presigner": "3.749.0",
+    "@aws-sdk/client-dynamodb": "3.751.0",
+    "@aws-sdk/client-s3": "3.750.0",
+    "@aws-sdk/client-sesv2": "3.753.0",
+    "@aws-sdk/client-sfn": "3.750.0",
+    "@aws-sdk/s3-request-presigner": "3.750.0",
     "@middy/core": "6.0.0",
     "@middy/http-content-negotiation": "6.0.0",
     "@middy/http-header-normalizer": "6.0.0",
@@ -20,7 +20,7 @@
     "cloudfront-log-parser": "1.2.0",
     "http-errors": "2.0.0",
     "luxon": "3.5.0",
-    "uuid": "11.0.5"
+    "uuid": "11.1.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.147",
