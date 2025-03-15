@@ -11,7 +11,7 @@
     "@mui/material": "6.4.7",
     "@mui/x-date-pickers": "7.27.3",
     "@reduxjs/toolkit": "^2.0.0",
-    "axios": "1.8.2",
+    "axios": "1.8.3",
     "http-proxy-middleware": "3.0.3",
     "luxon": "3.5.0",
     "oidc-client-ts": "^3.0.0",
