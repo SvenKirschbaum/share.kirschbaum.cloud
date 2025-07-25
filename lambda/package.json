@@ -5,10 +5,10 @@
     "@aws-lambda-powertools/logger": "2.24.0",
     "@aws-lambda-powertools/tracer": "2.24.0",
     "@aws-sdk/client-dynamodb": "3.848.0",
-    "@aws-sdk/client-s3": "3.848.0",
+    "@aws-sdk/client-s3": "3.850.0",
     "@aws-sdk/client-sesv2": "3.849.0",
     "@aws-sdk/client-sfn": "3.848.0",
-    "@aws-sdk/s3-request-presigner": "3.848.0",
+    "@aws-sdk/s3-request-presigner": "3.850.0",
     "@middy/core": "6.4.1",
     "@middy/http-content-negotiation": "6.4.1",
     "@middy/http-header-normalizer": "6.4.1",
@@ -23,7 +23,7 @@
     "uuid": "11.1.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.151",
+    "@types/aws-lambda": "8.10.152",
     "@types/http-errors": "2.0.5",
     "@types/luxon": "3.6.2",
     "@types/uuid": "10.0.0",
