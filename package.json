@@ -23,7 +23,7 @@
     "jest": "30.0.5",
     "ts-jest": "29.4.1",
     "ts-node": "10.9.2",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   },
   "dependencies": {
     "@fallobst22/cdk-cross-account-route53": "0.0.78",
