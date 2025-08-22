@@ -17,7 +17,7 @@
     "@typescript-eslint/parser": "8.39.1",
     "aws-cdk": "2.1025.0",
     "chokidar": "4.0.3",
-    "eslint": "8.57.1",
+    "eslint": "9.34.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.32.0",
     "jest": "30.0.5",
