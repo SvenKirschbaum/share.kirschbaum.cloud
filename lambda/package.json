@@ -20,7 +20,7 @@
     "cloudfront-log-parser": "1.2.0",
     "http-errors": "2.0.0",
     "luxon": "3.7.2",
-    "uuid": "11.1.0"
+    "uuid": "13.0.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.152",
