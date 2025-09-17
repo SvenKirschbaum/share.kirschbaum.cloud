@@ -26,7 +26,7 @@
     "@types/aws-lambda": "8.10.152",
     "@types/http-errors": "2.0.5",
     "@types/luxon": "3.7.1",
-    "@types/uuid": "10.0.0",
+    "@types/uuid": "11.0.0",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
     "glob": "11.0.3",
