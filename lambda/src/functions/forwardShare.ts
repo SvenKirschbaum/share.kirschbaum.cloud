@@ -9,6 +9,8 @@ import {injectLambdaContext} from "@aws-lambda-powertools/logger/middleware";
 import middy from "@middy/core";
 import {DateTime} from "luxon";
 import {response404, response500} from "../types/edgeResponses";
+import contentDisposition from 'content-disposition';
+
 
 const logger = new Logger();
 
@@ -66,7 +68,7 @@ export const lambdaHandler: CloudFrontRequestHandler = async function forwardSha
                 headers: {
                     'expires': [
                         {
-                            value: expiration.toRFC2822()
+                            value: expiration.toRFC2822() ?? ''
                         }
                     ],
                     'location': [
@@ -84,8 +86,8 @@ export const lambdaHandler: CloudFrontRequestHandler = async function forwardSha
 
         request.uri = `/${share.file.S}`;
         request.querystring = new URLSearchParams({
-            'response-content-disposition': `${forceDownload ? 'attachment' : 'inline'}; filename="${fileName ?? title}"`,
-            'response-expires': expiration.toRFC2822()
+            'response-content-disposition': contentDisposition(fileName ?? title, {type: forceDownload ? 'attachment' : 'inline', fallback: true}),
+            'response-expires': expiration.toRFC2822() ?? ''
         }).toString();
 
         return request;

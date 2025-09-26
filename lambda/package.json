@@ -18,12 +18,14 @@
     "@middy/validator": "6.4.5",
     "@middy/error-logger": "6.4.5",
     "cloudfront-log-parser": "1.2.0",
+    "content-disposition": "0.5.4",
     "http-errors": "2.0.0",
     "luxon": "3.7.2",
     "uuid": "13.0.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.152",
+    "@types/content-disposition": "0.5.9",
     "@types/http-errors": "2.0.5",
     "@types/luxon": "3.7.1",
     "@types/uuid": "11.0.0",
