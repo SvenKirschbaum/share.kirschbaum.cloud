@@ -18,7 +18,7 @@
     "@middy/http-response-serializer": "6.4.5",
     "@middy/validator": "6.4.5",
     "cloudfront-log-parser": "1.2.0",
-    "content-disposition": "0.5.4",
+    "content-disposition": "1.0.1",
     "http-errors": "2.0.0",
     "luxon": "3.7.2",
     "uuid": "13.0.0"
@@ -30,7 +30,7 @@
     "@types/luxon": "3.7.1",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
-    "glob": "11.0.3",
+    "glob": "13.0.0",
     "json-schema-to-typescript": "15.0.4",
     "typescript": "5.9.3"
   },
