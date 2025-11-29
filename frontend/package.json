@@ -6,10 +6,10 @@
   "dependencies": {
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
-    "@fontsource/roboto": "5.2.8",
+    "@fontsource/roboto": "5.2.9",
     "@mui/icons-material": "7.3.5",
     "@mui/material": "7.3.5",
-    "@mui/x-date-pickers": "8.18.0",
+    "@mui/x-date-pickers": "8.19.0",
     "@reduxjs/toolkit": "^2.0.0",
     "axios": "1.13.2",
     "http-proxy-middleware": "3.0.5",
@@ -28,12 +28,12 @@
   "devDependencies": {
     "@types/jest": "30.0.0",
     "@types/node": "24.10.1",
-    "@types/react": "19.2.5",
+    "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-basic-ssl": "2.1.0",
     "@vitejs/plugin-react": "5.1.1",
     "typescript": "5.9.3",
-    "vite": "7.2.2",
+    "vite": "7.2.4",
     "vite-plugin-svgr": "4.5.0"
   },
   "scripts": {
