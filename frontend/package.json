@@ -20,8 +20,8 @@
     "react-dom": "19.2.3",
     "react-oidc-context": "^3.0.0",
     "react-redux": "^9.0.0",
-    "react-router": "7.10.1",
-    "react-router-dom": "7.10.1",
+    "react-router": "7.11.0",
+    "react-router-dom": "7.11.0",
     "redux-saga": "1.4.2",
     "web-vitals": "5.1.0"
   },
