@@ -9,7 +9,7 @@
     "@fontsource/roboto": "5.2.9",
     "@mui/icons-material": "7.3.7",
     "@mui/material": "7.3.7",
-    "@mui/x-date-pickers": "8.24.0",
+    "@mui/x-date-pickers": "8.25.0",
     "@reduxjs/toolkit": "^2.0.0",
     "axios": "1.13.2",
     "http-proxy-middleware": "3.0.5",
