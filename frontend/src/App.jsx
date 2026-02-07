@@ -100,10 +100,14 @@ function App() {
                         <CssBaseline/>
                         <BrowserRouter>
                             <DropFile/>
-                            <Container sx={{
-                                marginTop: '4em',
-                                marginBottom: '4em',
-                            }} maxWidth={"sm"}>
+                            <Container
+                                maxWidth={false}
+                                sx={{
+                                    marginTop: '4em',
+                                    marginBottom: '4em',
+                                    maxWidth: '46.875rem',
+                                }}
+                            >
                                 <Routes>
                                     <Route path={'/'} exact element={<AuthRequired><ShareList/></AuthRequired>}/>
                                     <Route path={'/add'}>
