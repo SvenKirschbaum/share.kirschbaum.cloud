@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@types/jest": "30.0.0",
-    "@types/node": "24.10.9",
+    "@types/node": "24.10.10",
     "@typescript-eslint/eslint-plugin": "8.54.0",
     "@typescript-eslint/parser": "8.54.0",
     "aws-cdk": "2.1104.0",
@@ -26,9 +26,9 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
-    "@fallobst22/cdk-cross-account-route53": "0.0.97",
+    "@fallobst22/cdk-cross-account-route53": "0.0.98",
     "@trautonen/cdk-dns-validated-certificate": "0.1.38",
-    "aws-cdk-lib": "2.236.0",
+    "aws-cdk-lib": "2.237.1",
     "aws-sdk": "2.1693.0",
     "constructs": "10.4.5",
     "esbuild": "0.27.2",
