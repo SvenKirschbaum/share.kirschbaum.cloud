@@ -28,7 +28,7 @@
   "devDependencies": {
     "@types/jest": "30.0.0",
     "@types/node": "24.10.10",
-    "@types/react": "19.2.10",
+    "@types/react": "19.2.11",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-basic-ssl": "2.1.4",
     "@vitejs/plugin-react": "5.1.3",
