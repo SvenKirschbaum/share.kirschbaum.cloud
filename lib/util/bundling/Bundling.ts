@@ -1,14 +1,19 @@
 import * as os from 'os';
 import * as path from 'path';
-import { IConstruct } from 'constructs';
+import type { IConstruct } from 'constructs';
 import { PackageInstallation } from './package-installation';
 import { LockFile, PackageManager } from './package-manager';
-import { BundlingOptions, OutputFormat, SourceMapMode } from './types';
-import { exec, extractDependencies, findUp, getTsconfigCompilerOptions } from './util';
-import { Architecture, AssetCode, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
-import * as cdk from 'aws-cdk-lib';
+import type { BundlingOptions } from './types';
+import { OutputFormat, SourceMapMode } from './types';
+import { exec, extractDependencies, findUp, getTsconfigCompilerOptions, isSdkV2Runtime } from './util';
+import type { Architecture, AssetCode } from 'aws-cdk-lib/aws-lambda';
+import { Code, Runtime } from 'aws-cdk-lib/aws-lambda';
+import * as cdk from 'aws-cdk-lib/core';
+import { ValidationError } from 'aws-cdk-lib/core';
+import { LAMBDA_NODEJS_SDK_V3_EXCLUDE_SMITHY_PACKAGES } from 'aws-cdk-lib/cx-api';
 
 const ESBUILD_MAJOR_VERSION = '0';
+const ESBUILD_DEFAULT_VERSION = '0.21';
 
 /**
  * Bundling properties
@@ -42,7 +47,7 @@ export interface BundlingProps extends BundlingOptions {
     /**
      * Run compilation using `tsc` before bundling
      */
-    readonly preCompilation?: boolean
+    readonly preCompilation?: boolean;
 
     /**
      * Which option to use to copy the source files to the docker container and output files back
@@ -79,7 +84,7 @@ export class Bundling implements cdk.BundlingOptions {
 
     // Core bundling options
     public readonly image: cdk.DockerImage;
-    public readonly entrypoint?: string[]
+    public readonly entrypoint?: string[];
     public readonly command: string[];
     public readonly volumes?: cdk.DockerVolume[];
     public readonly volumesFrom?: string[];
@@ -109,7 +114,7 @@ export class Bundling implements cdk.BundlingOptions {
         this.relativeDepsLockFilePath = path.relative(this.projectRoot, path.resolve(props.depsLockFilePath));
 
         if (this.relativeDepsLockFilePath.includes('..')) {
-            throw new Error(`Expected depsLockFilePath: ${props.depsLockFilePath} to be under projectRoot: ${this.projectRoot} (${this.relativeDepsLockFilePath})`);
+            throw new ValidationError(`Expected depsLockFilePath: ${props.depsLockFilePath} to be under projectRoot: ${this.projectRoot} (${this.relativeDepsLockFilePath})`, scope);
         }
 
         if (props.tsconfig) {
@@ -117,21 +122,39 @@ export class Bundling implements cdk.BundlingOptions {
         }
 
         if (props.preCompilation && !/\.tsx?$/.test(props.entry)) {
-            throw new Error('preCompilation can only be used with typescript files');
+            throw new ValidationError('preCompilation can only be used with typescript files', scope);
         }
 
         if (props.format === OutputFormat.ESM && !isEsmRuntime(props.runtime)) {
-            throw new Error(`ECMAScript module output format is not supported by the ${props.runtime.name} runtime`);
+            throw new ValidationError(`ECMAScript module output format is not supported by the ${props.runtime.name} runtime`, scope);
         }
 
+        /**
+         * For Lambda runtime that uses AWS SDK v3, we need to remove both `aws-sdk/*` modules
+         * and `smithy/*` modules to prevent version mismatches. Hide it behind feature flag
+         * to make sure no breaking change is introduced.
+         *
+         * Issue reference: https://github.com/aws/aws-cdk/issues/31610#issuecomment-2389983347
+         */
+        const sdkV3Externals = cdk.FeatureFlags.of(scope).isEnabled(LAMBDA_NODEJS_SDK_V3_EXCLUDE_SMITHY_PACKAGES) ?
+          ['@aws-sdk/*', '@smithy/*'] : ['@aws-sdk/*'];
         // Modules to externalize when using a constant known version of the runtime.
         // Mark aws-sdk as external by default (available in the runtime)
         const isV2Runtime = isSdkV2Runtime(props.runtime);
-        const versionedExternals = isV2Runtime ? ['aws-sdk'] : ['@aws-sdk/*'];
+        const versionedExternals = isV2Runtime ? ['aws-sdk'] : sdkV3Externals;
         // Don't automatically externalize any dependencies when using a `latest` runtime which may
         // update versions in the future.
-        const defaultExternals = props.runtime?.isVariable ? [] : versionedExternals;
+        // Don't automatically externalize aws sdk if `bundleAwsSDK` is true so it can be
+        // include in the bundle asset
+        const defaultExternals = props.runtime?.isVariable || props.bundleAwsSDK ? [] : versionedExternals;
+
         const externals = props.externalModules ?? defaultExternals;
+
+        // warn users if they are using a runtime that does not support sdk v2
+        // and the sdk is not explicitly bundled
+        if (externals.length && isV2Runtime) {
+            cdk.Annotations.of(scope).addWarningV2('aws-cdk-lib/aws-lambda-nodejs:runtimeUpdateSdkV2Breakage', 'Be aware that the NodeJS runtime of Node 16 will be deprecated by Lambda on June 12, 2024. Lambda runtimes Node 18 and higher include SDKv3 and not SDKv2. Updating your Lambda runtime will require bundling the SDK, or updating all SDK calls in your handler code to use SDKv3 (which is not a trivial update). Please account for this added complexity and update as soon as possible.');
+        }
 
         // Warn users if they are trying to rely on global versions of the SDK that aren't available in
         // their environment.
@@ -154,19 +177,20 @@ export class Bundling implements cdk.BundlingOptions {
 
         // Docker bundling
         const shouldBuildImage = props.forceDockerBundling || !Bundling.esbuildInstallation;
-        this.image = shouldBuildImage ? props.dockerImage ?? cdk.DockerImage.fromBuild(path.join(__dirname, '../lib'),
-            {
-                buildArgs: {
-                    ...props.buildArgs ?? {},
-                    // If runtime isn't passed use regional default, lowest common denominator is node18
-                    IMAGE: props.runtime.bundlingImage.image,
-                    ESBUILD_VERSION: props.esbuildVersion ?? ESBUILD_MAJOR_VERSION,
-                },
-                platform: props.architecture.dockerPlatform,
-            })
-            : cdk.DockerImage.fromRegistry('dummy'); // Do not build if we don't need to
+        this.image = shouldBuildImage ? props.dockerImage ?? cdk.DockerImage.fromBuild(path.join(__dirname, '..', 'lib'),
+          {
+              buildArgs: {
+                  ...props.buildArgs ?? {},
+                  // If runtime isn't passed use regional default, lowest common denominator is node18
+                  IMAGE: props.runtime.bundlingImage.image,
+                  ESBUILD_VERSION: props.esbuildVersion ?? ESBUILD_DEFAULT_VERSION,
+              },
+              platform: props.architecture.dockerPlatform,
+              network: props.network,
+          })
+          : cdk.DockerImage.fromRegistry('dummy'); // Do not build if we don't need to
 
-        const bundlingCommand = this.createBundlingCommand({
+        const bundlingCommand = this.createBundlingCommand(scope, {
             inputDir: cdk.AssetStaging.BUNDLING_INPUT_DIR,
             outputDir: cdk.AssetStaging.BUNDLING_OUTPUT_DIR,
             esbuildRunner: 'esbuild', // esbuild is installed globally in the docker image
@@ -188,11 +212,11 @@ export class Bundling implements cdk.BundlingOptions {
 
         // Local bundling
         if (!props.forceDockerBundling) { // only if Docker is not forced
-            this.local = this.getLocalBundlingProvider();
+            this.local = this.getLocalBundlingProvider(scope);
         }
     }
 
-    private createBundlingCommand(options: BundlingCommandOptions): string {
+    private createBundlingCommand(scope: IConstruct, options: BundlingCommandOptions): string {
         const pathJoin = osPathJoin(options.osPlatform);
         let relativeEntryPath = pathJoin(options.inputDir, this.relativeEntryPath);
         let tscCommand = '';
@@ -200,7 +224,7 @@ export class Bundling implements cdk.BundlingOptions {
         if (this.props.preCompilation) {
             const tsconfig = this.props.tsconfig ?? findUp('tsconfig.json', path.dirname(this.props.entry));
             if (!tsconfig) {
-                throw new Error('Cannot find a `tsconfig.json` but `preCompilation` is set to `true`, please specify it via `tsconfig`');
+                throw new ValidationError('Cannot find a `tsconfig.json` but `preCompilation` is set to `true`, please specify it via `tsconfig`', scope);
             }
             const compilerOptions = getTsconfigCompilerOptions(tsconfig);
             tscCommand = `${options.tscRunner} "${relativeEntryPath}" ${compilerOptions}`;
@@ -211,7 +235,7 @@ export class Bundling implements cdk.BundlingOptions {
         const defines = Object.entries(this.props.define ?? {});
 
         if (this.props.sourceMap === false && this.props.sourceMapMode) {
-            throw new Error('sourceMapMode cannot be used when sourceMap is false');
+            throw new ValidationError('sourceMapMode cannot be used when sourceMap is false', scope);
         }
 
         const sourceMapEnabled = this.props.sourceMapMode ?? this.props.sourceMap;
@@ -223,7 +247,7 @@ export class Bundling implements cdk.BundlingOptions {
         const esbuildCommand: string[] = [
             options.esbuildRunner,
             '--bundle', `"${relativeEntryPath}"`,
-            `--target=${this.props.target ?? toTarget(this.props.runtime)}`,
+            `--target=${this.props.target ?? toTarget(scope, this.props.runtime)}`,
             '--platform=node',
             ...this.props.format ? [`--format=${this.props.format}`] : [],
             `--outfile="${pathJoin(options.outputDir, outFile)}"`,
@@ -235,12 +259,12 @@ export class Bundling implements cdk.BundlingOptions {
             ...defines.map(([key, value]) => `--define:${key}=${JSON.stringify(value)}`),
             ...this.props.logLevel ? [`--log-level=${this.props.logLevel}`] : [],
             ...this.props.keepNames ? ['--keep-names'] : [],
-            ...this.relativeTsconfigPath ? [`--tsconfig=${pathJoin(options.inputDir, this.relativeTsconfigPath)}`] : [],
-            ...this.props.metafile ? [`--metafile=${pathJoin(options.outputDir, 'index.meta.json')}`] : [],
+            ...this.relativeTsconfigPath ? [`--tsconfig="${pathJoin(options.inputDir, this.relativeTsconfigPath)}"`] : [],
+            ...this.props.metafile ? [`--metafile="${pathJoin(options.outputDir, 'index.meta.json')}"`] : [],
             ...this.props.banner ? [`--banner:js=${JSON.stringify(this.props.banner)}`] : [],
             ...this.props.footer ? [`--footer:js=${JSON.stringify(this.props.footer)}`] : [],
             ...this.props.mainFields ? [`--main-fields=${this.props.mainFields.join(',')}`] : [],
-            ...this.props.inject ? this.props.inject.map(i => `--inject:${i}`) : [],
+            ...this.props.inject ? this.props.inject.map(i => `--inject:"${i}"`) : [],
             ...this.props.esbuildArgs ? [toCliArgs(this.props.esbuildArgs)] : [],
         ];
 
@@ -250,7 +274,7 @@ export class Bundling implements cdk.BundlingOptions {
             // modules versions from it.
             const pkgPath = findUp('package.json', path.dirname(this.props.entry));
             if (!pkgPath) {
-                throw new Error('Cannot find a `package.json` in this project. Using `nodeModules` requires a `package.json`.');
+                throw new ValidationError('Cannot find a `package.json` in this project. Using `nodeModules` requires a `package.json`.', scope);
             }
 
             // Determine dependencies versions, lock file and installer
@@ -260,6 +284,7 @@ export class Bundling implements cdk.BundlingOptions {
             const lockFilePath = pathJoin(options.inputDir, this.relativeDepsLockFilePath ?? this.packageManager.lockFile);
 
             const isPnpm = this.packageManager.lockFile === LockFile.PNPM;
+            const isBun = this.packageManager.lockFile === LockFile.BUN_LOCK || this.packageManager.lockFile === LockFile.BUN;
 
             // Create dummy package.json, copy lock file if any and then install
             depsCommand = chain([
@@ -269,6 +294,7 @@ export class Bundling implements cdk.BundlingOptions {
                 osCommand.changeDirectory(options.outputDir),
                 this.packageManager.installCommand.join(' '),
                 isPnpm ? osCommand.remove(pathJoin(options.outputDir, 'node_modules', '.modules.yaml'), true) : '', // Remove '.modules.yaml' file which changes on each deployment
+                isBun ? osCommand.removeDir(pathJoin(options.outputDir, 'node_modules', '.cache')) : '', // Remove node_modules/.cache folder since you can't disable its creation
             ]);
         }
 
@@ -282,9 +308,9 @@ export class Bundling implements cdk.BundlingOptions {
         ]);
     }
 
-    private getLocalBundlingProvider(): cdk.ILocalBundling {
+    private getLocalBundlingProvider(scope: IConstruct): cdk.ILocalBundling {
         const osPlatform = os.platform();
-        const createLocalCommand = (outputDir: string, esbuild: PackageInstallation, tsc?: PackageInstallation) => this.createBundlingCommand({
+        const createLocalCommand = (outputDir: string, esbuild: PackageInstallation, tsc?: PackageInstallation) => this.createBundlingCommand(scope, {
             inputDir: this.projectRoot,
             outputDir,
             esbuildRunner: esbuild.isLocal ? this.packageManager.runBinCommand('esbuild') : 'esbuild',
@@ -302,27 +328,27 @@ export class Bundling implements cdk.BundlingOptions {
                 }
 
                 if (!Bundling.esbuildInstallation.version.startsWith(`${ESBUILD_MAJOR_VERSION}.`)) {
-                    throw new Error(`Expected esbuild version ${ESBUILD_MAJOR_VERSION}.x but got ${Bundling.esbuildInstallation.version}`);
+                    throw new ValidationError(`Expected esbuild version ${ESBUILD_MAJOR_VERSION}.x but got ${Bundling.esbuildInstallation.version}`, scope);
                 }
 
                 const localCommand = createLocalCommand(outputDir, Bundling.esbuildInstallation, Bundling.tscInstallation);
 
                 exec(
-                    osPlatform === 'win32' ? 'cmd' : 'bash',
-                    [
-                        osPlatform === 'win32' ? '/c' : '-c',
-                        localCommand,
-                    ],
-                    {
-                        env: { ...process.env, ...environment },
-                        stdio: [ // show output
-                            'ignore', // ignore stdio
-                            process.stderr, // redirect stdout to stderr
-                            'inherit', // inherit stderr
-                        ],
-                        cwd,
-                        windowsVerbatimArguments: osPlatform === 'win32',
-                    });
+                  osPlatform === 'win32' ? 'cmd' : 'bash',
+                  [
+                      osPlatform === 'win32' ? '/c' : '-c',
+                      localCommand,
+                  ],
+                  {
+                      env: { ...process.env, ...environment },
+                      stdio: [ // show output
+                          'ignore', // ignore stdio
+                          process.stderr, // redirect stdout to stderr
+                          'inherit', // inherit stderr
+                      ],
+                      cwd,
+                      windowsVerbatimArguments: osPlatform === 'win32',
+                  });
 
                 return true;
             },
@@ -380,6 +406,14 @@ class OsCommand {
         const opts = force ? ['-f'] : [];
         return `rm ${opts.join(' ')} "${filePath}"`;
     }
+
+    public removeDir(dir: string): string {
+        if (this.osPlatform === 'win32') {
+            return `rmdir /s /q "${dir}"`;
+        }
+
+        return `rm -rf "${dir}"`;
+    }
 }
 
 /**
@@ -406,11 +440,11 @@ function osPathJoin(platform: NodeJS.Platform) {
 /**
  * Converts a runtime to an esbuild node target
  */
-function toTarget(runtime: Runtime): string {
+function toTarget(scope: IConstruct, runtime: Runtime): string {
     const match = runtime.name.match(/nodejs(\d+)/);
 
     if (!match) {
-        throw new Error('Cannot extract version from runtime.');
+        throw new ValidationError('Cannot extract version from runtime.', scope);
     }
 
     return `node${match[1]}`;
@@ -418,34 +452,19 @@ function toTarget(runtime: Runtime): string {
 
 function toCliArgs(esbuildArgs: { [key: string]: string | boolean }): string {
     const args = new Array<string>();
+    const reSpecifiedKeys = ['--alias', '--drop', '--pure', '--log-override', '--out-extension'];
 
     for (const [key, value] of Object.entries(esbuildArgs)) {
         if (value === true || value === '') {
             args.push(key);
+        } else if (reSpecifiedKeys.includes(key)) {
+            args.push(`${key}:"${value}"`);
         } else if (value) {
             args.push(`${key}="${value}"`);
         }
     }
 
     return args.join(' ');
-}
-
-/**
- * Detect if a given Node.js runtime uses SDKv2
- */
-function isSdkV2Runtime(runtime: Runtime): boolean {
-    const sdkV2RuntimeList = [
-        Runtime.NODEJS,
-        Runtime.NODEJS_4_3,
-        Runtime.NODEJS_6_10,
-        Runtime.NODEJS_8_10,
-        Runtime.NODEJS_10_X,
-        Runtime.NODEJS_12_X,
-        Runtime.NODEJS_14_X,
-        Runtime.NODEJS_16_X,
-    ];
-
-    return sdkV2RuntimeList.some((r) => {return r.family === runtime.family && r.name === runtime.name;});
 }
 
 /**

@@ -1,6 +1,9 @@
-import { spawnSync, SpawnSyncOptions } from 'child_process';
+import type { SpawnSyncOptions } from 'child_process';
+import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { UnscopedValidationError } from 'aws-cdk-lib/core';
 
 export interface CallSite {
     getThis(): any;
@@ -24,6 +27,7 @@ export interface CallSite {
  * https://github.com/sindresorhus/callsites
  */
 export function callsites(): CallSite[] {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const _prepareStackTrace = Error.prepareStackTrace;
     Error.prepareStackTrace = (_, stack) => stack;
     const stack = new Error().stack?.slice(1);
@@ -77,9 +81,9 @@ export function exec(cmd: string, args: string[], options?: SpawnSyncOptions) {
 
     if (proc.status !== 0) {
         if (proc.stdout || proc.stderr) {
-            throw new Error(`[Status ${proc.status}] stdout: ${proc.stdout?.toString().trim()}\n\n\nstderr: ${proc.stderr?.toString().trim()}`);
+            throw new UnscopedValidationError(`[Status ${proc.status}] stdout: ${proc.stdout?.toString().trim()}\n\n\nstderr: ${proc.stderr?.toString().trim()}`);
         }
-        throw new Error(`${cmd} ${args.join(' ')} ${options?.cwd ? `run in directory ${options.cwd}` : ''} exited with status ${proc.status}`);
+        throw new UnscopedValidationError(`${cmd} ${args.join(' ')} ${options?.cwd ? `run in directory ${options.cwd}` : ''} exited with status ${proc.status}`);
     }
 
     return proc;
@@ -116,7 +120,7 @@ export function tryGetModuleVersionFromPkg(mod: string, pkgJson: { [key: string]
     if (fileMatch && !path.isAbsolute(fileMatch[1])) {
         const absoluteFilePath = path.join(path.dirname(pkgPath), fileMatch[1]);
         return `file:${absoluteFilePath}`;
-    };
+    }
 
     return dependencies[mod];
 }
@@ -135,9 +139,9 @@ export function extractDependencies(pkgPath: string, modules: string[]): { [key:
 
     for (const mod of modules) {
         const version = tryGetModuleVersionFromPkg(mod, pkgJson, pkgPath)
-            ?? tryGetModuleVersionFromRequire(mod);
+          ?? tryGetModuleVersionFromRequire(mod);
         if (!version) {
-            throw new Error(`Cannot extract version for module '${mod}'. Check that it's referenced in your package.json or installed.`);
+            throw new UnscopedValidationError(`Cannot extract version for module '${mod}'. Check that it's referenced in your package.json or installed.`);
         }
         dependencies[mod] = version;
     }
@@ -165,7 +169,6 @@ export function getTsconfigCompilerOptions(tsconfigPath: string): string {
 
     let compilerOptionsString = '';
     Object.keys(options).sort().forEach((key: string) => {
-
         if (excludedCompilerOptions.includes(key)) {
             return;
         }
@@ -187,7 +190,7 @@ export function getTsconfigCompilerOptions(tsconfigPath: string): string {
                 compilerOptionsString += option + ' ' + value.join(',') + ' ';
             }
         } else {
-            throw new Error(`Missing support for compilerOption: [${key}]: { ${type}, ${value}} \n`);
+            throw new UnscopedValidationError(`Missing support for compilerOption: [${key}]: { ${type}, ${value}} \n`);
         }
     });
 
@@ -203,9 +206,27 @@ function extractTsConfig(tsconfigPath: string, previousCompilerOptions?: Record<
     };
     if (extendedConfig) {
         return extractTsConfig(
-            path.resolve(tsconfigPath.replace(/[^\/]+$/, ''), extendedConfig),
-            updatedCompilerOptions,
+          path.resolve(tsconfigPath.replace(/[^\/]+$/, ''), extendedConfig),
+          updatedCompilerOptions,
         );
     }
     return updatedCompilerOptions;
+}
+
+/**
+ * Detect if a given Node.js runtime uses SDKv2
+ */
+export function isSdkV2Runtime(runtime: Runtime): boolean {
+    const sdkV2RuntimeList = [
+        Runtime.NODEJS,
+        Runtime.NODEJS_4_3,
+        Runtime.NODEJS_6_10,
+        Runtime.NODEJS_8_10,
+        Runtime.NODEJS_10_X,
+        Runtime.NODEJS_12_X,
+        Runtime.NODEJS_14_X,
+        Runtime.NODEJS_16_X,
+    ];
+
+    return sdkV2RuntimeList.some((r) => {return r.family === runtime.family && r.name === runtime.name;});
 }
