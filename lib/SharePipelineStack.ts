@@ -110,6 +110,9 @@ export default class SharePipelineStack extends Stack {
         version: 0.2,
         phases: {
           install: {
+            'runtime-versions': {
+              nodejs: 24
+            },
             commands: [
               'npm ci',
               '(cd frontend && npm ci)',
