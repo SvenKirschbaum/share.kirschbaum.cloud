@@ -15,7 +15,7 @@
     "@types/node": "24.12.2",
     "@typescript-eslint/eslint-plugin": "8.59.1",
     "@typescript-eslint/parser": "8.59.1",
-    "aws-cdk": "2.1119.0",
+    "aws-cdk": "2.1120.0",
     "chokidar": "5.0.0",
     "eslint": "8.57.1",
     "eslint-config-airbnb-base": "15.0.0",
