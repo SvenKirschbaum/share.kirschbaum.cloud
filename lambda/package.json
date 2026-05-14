@@ -18,7 +18,7 @@
     "@middy/http-response-serializer": "7.4.0",
     "@middy/validator": "7.4.0",
     "cloudfront-log-parser": "1.2.0",
-    "content-disposition": "1.1.0",
+    "content-disposition": "2.0.0",
     "http-errors": "2.0.1",
     "luxon": "3.7.2",
     "uuid": "14.0.0"
