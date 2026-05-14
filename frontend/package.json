@@ -12,7 +12,7 @@
     "@mui/x-date-pickers": "9.1.0",
     "@reduxjs/toolkit": "^2.0.0",
     "axios": "1.16.0",
-    "http-proxy-middleware": "3.0.5",
+    "http-proxy-middleware": "4.0.0",
     "luxon": "3.7.2",
     "oidc-client-ts": "^3.0.0",
     "pretty-bytes": "7.1.0",
@@ -34,7 +34,7 @@
     "@vitejs/plugin-react": "6.0.1",
     "typescript": "5.9.3",
     "vite": "8.0.10",
-    "vite-plugin-svgr": "4.5.0"
+    "vite-plugin-svgr": "5.2.0"
   },
   "scripts": {
     "start": "vite",
