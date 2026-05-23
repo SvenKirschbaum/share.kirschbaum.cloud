@@ -20,20 +20,20 @@
     "react-dom": "19.2.6",
     "react-oidc-context": "^3.0.0",
     "react-redux": "^9.0.0",
-    "react-router": "7.15.0",
-    "react-router-dom": "7.15.0",
+    "react-router": "7.15.1",
+    "react-router-dom": "7.15.1",
     "redux-saga": "1.4.3",
     "web-vitals": "5.2.0"
   },
   "devDependencies": {
     "@types/jest": "30.0.0",
     "@types/node": "24.12.4",
-    "@types/react": "19.2.14",
+    "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-basic-ssl": "2.3.0",
-    "@vitejs/plugin-react": "6.0.1",
+    "@vitejs/plugin-react": "6.0.2",
     "typescript": "5.9.3",
-    "vite": "8.0.12",
+    "vite": "8.0.13",
     "vite-plugin-svgr": "5.2.0"
   },
   "scripts": {
