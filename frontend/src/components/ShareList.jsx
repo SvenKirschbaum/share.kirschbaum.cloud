@@ -15,7 +15,7 @@ import {
     ListItemIcon,
     ListItemText, Typography,
 } from '@mui/material';
-import {Link} from "react-router-dom";
+import {Link} from "react-router";
 
 import AddIcon from '@mui/icons-material/Add';
 import AttachFileIcon from '@mui/icons-material/AttachFile';

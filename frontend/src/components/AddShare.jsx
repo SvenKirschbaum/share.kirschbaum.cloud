@@ -17,7 +17,7 @@ import {
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, Paper,
     TextField, Typography,
 } from "@mui/material";
-import {Link} from "react-router-dom";
+import {Link} from "react-router";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';

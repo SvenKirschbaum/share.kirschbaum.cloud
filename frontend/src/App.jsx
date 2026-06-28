@@ -8,7 +8,7 @@ import {
 import "@fontsource/roboto"
 import './App.css';
 import ShareList from "./components/ShareList";
-import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Route, Routes} from "react-router";
 import {AddFile, AddRequest, AddLink, TypeSelection} from "./components/AddShare";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import {createTheme, ThemeProvider} from "@mui/material/styles";
