@@ -26,9 +26,9 @@
   "dependencies": {
     "@fallobst22/cdk-cross-account-route53": "0.0.123",
     "@trautonen/cdk-dns-validated-certificate": "0.1.58",
-    "aws-cdk-lib": "2.262.1",
+    "aws-cdk-lib": "2.262.2",
     "aws-sdk": "2.1693.0",
-    "constructs": "10.7.1",
+    "constructs": "10.7.2",
     "esbuild": "0.28.1",
     "source-map-support": "0.5.21"
   }
