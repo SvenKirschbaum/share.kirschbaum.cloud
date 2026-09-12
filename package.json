@@ -15,7 +15,7 @@
     "@types/node": "24.13.3",
     "@typescript-eslint/eslint-plugin": "8.70.0",
     "@typescript-eslint/parser": "8.70.0",
-    "aws-cdk": "2.1140.0",
+    "aws-cdk": "2.1141.0",
     "chokidar": "5.0.0",
     "eslint": "10.10.0",
     "jest": "30.5.1",
