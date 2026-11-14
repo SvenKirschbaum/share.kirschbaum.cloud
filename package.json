@@ -13,9 +13,9 @@
   "devDependencies": {
     "@types/jest": "30.0.0",
     "@types/node": "24.19.2",
-    "@typescript-eslint/eslint-plugin": "8.72.1",
-    "@typescript-eslint/parser": "8.72.1",
-    "aws-cdk": "2.1147.0",
+    "@typescript-eslint/eslint-plugin": "8.72.2",
+    "@typescript-eslint/parser": "8.72.2",
+    "aws-cdk": "2.1148.0",
     "chokidar": "5.0.0",
     "eslint": "10.14.0",
     "jest": "30.5.2",
@@ -24,9 +24,9 @@
     "typescript": "6.0.3"
   },
   "dependencies": {
-    "@fallobst22/cdk-cross-account-route53": "0.0.137",
-    "@trautonen/cdk-dns-validated-certificate": "0.1.73",
-    "aws-cdk-lib": "2.275.0",
+    "@fallobst22/cdk-cross-account-route53": "0.0.138",
+    "@trautonen/cdk-dns-validated-certificate": "0.1.74",
+    "aws-cdk-lib": "2.276.0",
     "aws-sdk": "2.1693.0",
     "constructs": "10.8.1",
     "esbuild": "0.28.2",
